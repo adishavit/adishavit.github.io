@@ -313,7 +313,7 @@ Although this post has been in planning for several years, a colleague prodded m
 I hope you enjoy it. **Happy New Year 2017** 🎉 
 >
 > I'd like to thank [@galsh83](https://twitter.com/galsh83), [@MaximRaskin](@MaximRaskin) and [@orens](https://github.com/orens) for their valuable feedback on this post.  
-If you found this post helpful, or you have more thoughts or horror stories on this subject, please leave a message in the comments below, on Twitter or or Reddit.
+If you found this post helpful, or you have more thoughts or horror stories on this subject, please leave a message in the comments below, on Twitter or Reddit.
 
  
 *Credits: 
