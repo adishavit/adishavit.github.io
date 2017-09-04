@@ -13,7 +13,6 @@ A fanciful little post about li'l old `main()`.
 The function `main()` is a normal program's [entry point](http://en.cppreference.com/w/cpp/language/main_function) [[**§basic.start.main**](http://eel.is/c++draft/basic.start.main)].
 
 ### Minimalism
-
 The shortest conforming C++ executable program is [[^1]]:
 
 [^1]: The requirement that every source file end with a non-escaped newline was [removed](https://stackoverflow.com/a/8172348/135862) in C++11, but is required in C and pre-C++11.
@@ -29,6 +28,14 @@ A few interesting things to about this snippet:
    However, some compilers will only [warn](https://wandbox.org/permlink/z1qDbe9lnEg88TYe) on the even minimaler `main(){}`.
 3. We do not *need* to `return` a value from `main()`.   
    *"If control flows off the end of... main, the effect is equivalent to a return with `0`"*.  
+
+### Modernism
+As kindly suggested by [@krzaq](https://twitter.com/KrzaQ2), let's not forget the modern incarnation:
+
+```cpp
+auto main() -> int {}
+```
+Which uses `auto` with the trailing return type `int`.
 
 ### Arguments
 Sometimes we want to pass command line arguments to our program. 
