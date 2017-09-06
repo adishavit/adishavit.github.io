@@ -28,6 +28,8 @@ A few interesting things to about this snippet:
    However, some compilers will only [warn](https://wandbox.org/permlink/z1qDbe9lnEg88TYe) on the even minimaler `main(){}`.
 3. We do not *need* to `return` a value from `main()`.   
    *"If control flows off the end of... main, the effect is equivalent to a return with `0`"*.  
+   [Shafik Yaghmour](https://twitter.com/shafikyaghmour) points out in the comments that this curious behavior is due to [*the C99 standard finally having to bow to sloppy existing practices*](https://stackoverflow.com/a/31396971/135862).
+
 
 ### Modernism
 As kindly suggested by [@krzaq](https://twitter.com/KrzaQ2), let's not forget the modern incarnation:
@@ -168,9 +170,14 @@ MSVC also supports a non-standard, Microsoft-Specific alternative function:
 `wmain(int argc, wchar_t *argv[], wchar_t *envp[])`   
 for working with wide Unicode characters on the Windows command line. Read more about it [here](https://docs.microsoft.com/en-us/cpp/c-language/using-wmain).
 
+### Termination
+
+There are surprisingly many of ways of leaving `main()`. See my [Terminators](http://videocortex.io/2016/terminators/) post for more details.   
+<p style="text-align: center;font-weight: bold;"><img src="../../assets/terminator_robot.png"></p>
+
+
 ### Summary
 Trusty old `main()` is the first function we meet when writing our first "Hello World". We take it for granted and don't often give it a second thought. But it is a special function with some unique behaviors, tricks and secrets - some of them dark. So...   
-
   
 <p style="text-align: center;font-weight: bold;">😈 Beware The Imp 😈</p>
 <p style="text-align: center;"><img src="https://media.giphy.com/media/ykBfNG10gwIRW/giphy.gif"></p>
@@ -198,5 +205,9 @@ Seriously - try it.***
 
 *If you found this post interesting, have a better quiz answer, you think I missed something or simply want to discuss this further, please leave a message in the comments below, on Twitter, Reddit or find me on [the C++ Slack channel](https://cpplang.now.sh/).*
 
+*Credits: 
+[banner](https://pixabay.com/en/cherry-tomatoes-tomato-food-2152341/) ::
+[giphy](http://gph.is/29iaGnN) :: 
+[Collapsable Markdown section](https://github.com/dear-github/dear-github/issues/166#issuecomment-236342209)*
 
 #### Footnotes
