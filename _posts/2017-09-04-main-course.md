@@ -49,8 +49,8 @@ This gives us the familiar `int main(int argc, char* argv[])` where:
 
 1. `argc` is the number of command line arguments;
 2. `argv` is an array of pointers to `char*` null-terminated multibyte strings that represent the arguments passed to the program from the execution environment;
-3. `argc` is always at least 1, with `argv[0]` the name of the executable or `""` where unavailable;
-4. `argv[argc]` is guaranteed to be a null pointer.
+3. When `argc` is nonzero, `argv[0]` will be the name of the executable or `""` where unavailable;
+4. Regardless, even when `0 == argc`, `nullptr == argv[argc]` is guaranteed.
 
 We can write the contrived minimal "`main` with args": 
 
