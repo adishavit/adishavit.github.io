@@ -200,7 +200,39 @@ Seriously - try it.***
 </details>
 </details>
 <br>
-<p style="text-align: center;font-weight: bold;">😈</p> 
+
+### UBnacci
+<p style="text-align: center;font-weight: bold;">👿<br>👿<br>👿👿<br>👿👿👿<br>👿👿👿👿👿<br>👿👿👿👿👿👿👿👿<br>👿👿👿👿👿👿👿👿👿👿👿👿👿</p>
+
+The [standard says](http://eel.is/c++draft/basic.start.main#3.sentence-1):  
+
+> The function main shall not be used within a program.
+
+[cppreference.com says](http://en.cppreference.com/w/cpp/language/main_function):  
+
+>The main function has several special properties:  
+>  1. It cannot be used anywhere in the program: in particular, **it cannot be called recursively**
+
+Disregarding and ignoring this rule puts us into **UB** (*undefined behavior*) territory.  
+
+However, speaking of tiny programs, I was surprised to see that this program, which I call **UBnacci**,  [works](https://wandbox.org/permlink/hOlPca0rANAgabwC) on all major compilers:  
+
+```cpp
+// UBnacii: Do not do try this at home! Here be Nasal Demons!
+int main(int argc, char** = nullptr) // defaults to nullptr
+{ return argc < 2 ? argc : main(argc-1) + main(argc-2); }
+```
+This tiny app will calculate the Fibonacci number of `argc` by recursivly calling `main()` itself!  
+To make this even more fun, note that the unnamed `char**` argument defaults to `nullptr` so that `main()` can be called with a single argument!   
+
+Again, this is just a fun little app, but **DO NOT do this in real code!**
+
+
+
+<p style="text-align: center;font-weight: bold;">👿👿👿👿👿👿👿👿👿👿👿👿👿<br>👿👿👿👿👿👿👿👿<br>👿👿👿👿👿<br>👿👿👿<br>👿👿<br>👿<br>👿</p>
+
+
+
 
 
 *If you found this post interesting, have a better quiz answer, you think I missed something or simply want to discuss this further, please leave a message in the comments below, on Twitter, Reddit or find me on [the C++ Slack channel](https://cpplang.now.sh/).*
