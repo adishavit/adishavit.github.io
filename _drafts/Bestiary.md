@@ -1,0 +1,288 @@
+---
+title: "The C++ Bestiary 🎃"
+date: 2017-10-31
+categories: [C++]
+tags: [C++, Halloween]
+---
+Spooky Halloween C++ Special!
+
+![pumpkins](../../assets/Halloween/pumpkin.jpg)    
+
+<style>
+body {background-color: #130912;}
+h1, h2, h3, h4 {
+  color: #B14623;
+  clear: left;
+}
+p {color:#F6921D;}
+code {
+    padding: .05em .2em; 
+    background: #130912;
+    border: 1px solid #602749;
+    color: #B14623;
+}
+</style>
+<script>
+// change blog profile image to spooky colorized version
+document.getElementsByClassName("user-image")[0].src="/images/colorized_100px.png";
+</script>
+
+## A Compendium of Cryptic Characters  
+
+C++ is blessed with a plethora of gotchas, traps, caveats, pitfalls and footguns. Within the C++ dungeons lurk many shady characters. 'Tis the time of year to meet some of these bountifully spawned beasts. 
+
+* Table of Contents
+{:toc} 
+
+<p align="center">🎃</p>
+
+### ⛄ Abominable Types
+*"There is a dark corner of the type system that is little known other than to compier writers..."    
+-- [Alisdair Meredith](https://twitter.com/alisdairmered), [Abominable Function Types](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html)*  
+
+<img src="../../assets/Halloween/abominable.jpg" width="200px" style="float:left;margin: 10px;"/>
+An *abominable* function type is the type produced by writing a function type followed by a *cv-ref* qualifier.
+
+```cpp
+using abominable = void() const volatile &&;
+```
+
+`abominable` names a *function type*, *not* a reference type, and despite appearances, is neither a `const` nor a `volatile` qualified type. There is no such thing as a *cv-qualified function type* in the type system, and the abominable function type is something else entirely.  
+Note that it is **impossible** to create a function that has an abominable type!
+<br clear="left"/>
+
+*"The only examples I have of explicitly writing these types fall into the category of showing off knowledge of the corners of compilers, and winning obfuscated coding contests.  
+I have not yet encountered the following idiom in real-world usage outside of such scenarios."  -- ibid*
+
+```cpp
+struct rectangle 
+{
+    using int_property = int() const;                     // common signature for several methods
+    int_property top, left, bottom, right, width, height; // declare property methods! 
+    // ...                                                                    ^^^^^^^
+};
+```
+
+Spooked? Curious? Read more in *[Tales of the Abominable Function Types!](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html)*  
+*Mwahahahah...*
+<p align="center">🎃</p>
+
+### 👽 Aliens
+***Bishop**: No, the hard-wiring between here and there was damaged. We can't **align** the dish.  
+**Ripley**: Well, then somebody has got to go out there, take a portable terminal, and patch in manually.  
+-- Aliens 1986*  
+<img src="../../assets/Halloween/aliens.jpg" width="200px" style="float:left;margin: 10px;"/>
+Stretching it a bit thin so forgive my "silly" typo, and let's mention `alignas` (which when squinting hard enough you might just read as `aliens`) and its kin. The [`alignas` keyword specifier](http://en.cppreference.com/w/cpp/language/alignas) was introduced in C++11. It specifies the [alignment requirement](http://en.cppreference.com/w/cpp/language/object#Alignment) of a type or an object.  
+
+*Every object type has the property called alignment requirement, which is an integer value (of type `std::size_t` and always a power of 2) representing the number of bytes between successive addresses at which objects of this type can be allocated. The alignment requirement of a type can be queried with `alignof` or `std::alignment_of`. The pointer alignment function `std::align` can be used to obtain a suitably-aligned pointer within some buffer, and `std::aligned_storage` can be used to obtain suitably-aligned storage. Each object type imposes its alignment requirement on every object of that type; stricter alignment (with larger alignment requirement) can be requested using `alignas`. In order to satisfy alignment requirements of all non-static members of a class, padding may be inserted after some of its members.*
+
+
+<p align="center">🎃</p>
+
+### 👹 Demons
+*"Permissible undefined behavior ranges from ignoring the situation completely with unpredictable results, to having **demons** fly out of your nose."  
+-- John F. Woods, [comp.std.c 1992](https://groups.google.com/forum/?hl=en#!msg/comp.std.c/ycpVKxTZkgw/S2hHdTbv4d8J)*  
+<img src="../../assets/Halloween/demon.jpg" width="200px" style="float:left;margin: 10px;"/> The most notorious and infamous of all is probably the Nasal Demon of **Undefined Behavior**.  
+With its ancient origins in the C language, it predates many of the other members of this list. Nevertheless, it is still an ever present threat and terror to the unsuspecting journeyman.  
+
+In [short](http://en.cppreference.com/w/cpp/language/ub), *Undefined Behavior (UB)* renders the *entire* program meaningless if certain rules of the language are violated.
+
+A lot has been written about UB. [John Regehr](https://twitter.com/johnregehr) has a facinating [series on UB](https://blog.regehr.org/archives/213) and an [update on Undefined Behavior in 2017](https://blog.regehr.org/archives/1520) too. His [two](https://youtu.be/v1COuU2vU_w) [part](https://youtu.be/TPyLrJED0zQ) CppCon 2017 ["Undefined Behavior in 2017"](https://youtu.be/v1COuU2vU_w) videos are online too. 
+
+**STARTLING NEW EPIC:** In Sept. 2017, the Demon showed it still has what it takes when a short UB snippet went [viral](https://www.reddit.com/r/cpp/comments/6xeqr3/compiler_undefined_behavior_calls_nevercalled/): 
+
+```cpp
+#include <cstdlib>                                    // for system()
+typedef int (*Function)();                            // typedef function pointer type  
+static Function Do;                                   // define function pointer, default initialized to 0 
+static int EraseAll() { return system("rm -rf /");  } // naughty function
+void NeverCalled()    { Do = EraseAll;              } // this function is never called!
+int main()            { return Do();                } // call default-initialized function=UB: chaos ensues.
+```
+which Clang  compiles to
+
+```asm
+main:
+        movl    $.L.str, %edi
+        jmp     system
+
+.L.str:
+        .asciz  "rm -rf /"
+```        
+That is, the compiled program executes `rm -rf /` even though the original program never calls `EraseAll()`! However, Clang is allowed to do this since the function pointer `Do` is initialized to `0` as it is a static variable, and calling `0` invokes undefined behavior – but it may seem strange that the compiler chooses to generate this code. It does, however, follow naturally from how compilers analyze programs...
+
+Read more about this cryptic tale [here](https://kristerw.blogspot.co.il/2017/09/why-undefined-behavior-may-call-never.html).
+
+<p align="center">🎃</p>
+
+### 👿 DLL Hell
+*“There is no greater sorrow then to recall our times of joy in wretchedness.”  
+― Dante Alighieri, Inferno*  
+<img src="../../assets/Halloween/hell.jpg" width="200px" style="float:left;margin: 10px;"/>
+[DLL Hell](https://en.wikipedia.org/wiki/DLL_Hell) is a term for the complications that arise when working with dynamic link libraries (DLLs) used with Microsoft Windows operating systems.  
+DLL Hell can manifest itself in many different ways in which applications do not launch or work correctly. Like Dante's Inferno [Circles of Hell](http://historylists.org/art/9-circles-of-hell-dantes-inferno.html), DLL Hell is the Windows ecosystem-specific form of the general concept [Dependency Hell](https://en.wikipedia.org/wiki/Dependency_hell).  
+<br clear="left"/>
+<p align="center">🎃</p>
+
+### 🦆 Duck Typing
+*"If it looks like a duck and quacks like a duck but it needs batteries, you probably have the wrong abstraction."  
+-- [The Internets on the Liskov Substitution Principle](https://lostechies.com/derickbailey/2009/02/11/solid-development-principles-in-motivational-pictures/)*  
+<img src="../../assets/Halloween/duckula.jpg" width="200px" style="float:left;margin: 10px;"/>
+[*Duck typing*](https://en.wikipedia.org/wiki/Duck_typing) is an application of *The Duck Test* in type safety.  
+[*The Duck Test*](https://en.wikipedia.org/wiki/Duck_test) is a form of [*abductive reasoning*](https://en.wikipedia.org/wiki/Abductive_reasoning).  
+This is its usual expression:
+
+*If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.* 
+
+"Classic" Duck Typing requires that type checking be deferred to runtime and is mostly relevant to dynamically typed languages (unlike C++). However, templates or generic functions or methods apply the duck test in a *static* typing context.    
+<br clear="left"/>
+In fact, one of the main reasons for C++ Concepts (if/when) they finally land, is to bring a more disciplined approach to template type specification and ... well..  
+
+***Be vwey vewy quite... it's Duck Typing Season***.
+<p align="center"><img src="../../assets/Halloween/duck_season.gif" width="400px"/><br>Concepts vs. Duck Typing</p>  
+
+***Wead mowe [hewe.](http://www.drdobbs.com/templates-and-duck-typing/184401971)***
+
+<p align="center">🎃</p>
+
+### 😈 Imps
+*"It’s easy to confuse ‘what is’ with ‘what ought to be,’ especially when ‘what is’ has worked out in your favor."  
+-- Tyrion Lannister, A.K.A. **"The Imp"***  
+<img src="../../assets/Halloween/TheBottleImp.jpg" width="200px" style="float:left;margin: 10px;"/>
+The C++ standard mentions [undefined behavior](http://eel.is/c++draft/intro.defs#defns.undefined) Demon's two less dangerous brothers, [*unspecified behavior*](http://eel.is/c++draft/intro.defs#defns.unspecified) and the [*implementation-defined behavior Imp*](http://eel.is/c++draft/intro.defs#defns.impl.defined).
+
+**Implementation-defined behavior**: unspecified behavior where each implementation documents how the choice is made.  
+In *implementation-defined behavior* the implementation is *required* to document/guarantee what exactly is going to happen, while in case of *unspecified behavior* the implementation is *not* required to document or guarantee anything.
+<br clear="left"/>
+Imps come in many form - [here's an impressive (if disheartening) list of known Imps](http://eel.is/c++draft/impldefindex).  
+[Read more](https://stackoverflow.com/q/2397984/135862) if you dare!
+<p align="center">🎃</p>
+
+### 🕴️ Shadow Variables
+*"Only a lone foe could pierce that cordon; once inside, he would have to move by stealth, and strike with power and suddenness. I chose that mission."  
+-– The Shadow, [Shadow Magazine #131 1937](http://thelivingshadow.wikia.com/wiki/Shadow_Magazine_Vol_1_131)*  
+<img src="../../assets/Halloween/shadow.jpg" width="200px" style="float:left;margin: 10px;"/>  
+[Variable shadowing](https://en.wikipedia.org/wiki/Variable_shadowing) occurs when a variable declared within a certain scope (e.g a block, a function) has the same name as a variable declared in an outer scope. The outer variable is said to be shadowed by the inner variable, while the inner identifier is said to mask the outer identifier. This can lead to confusion, as it may be unclear which variable subsequent uses of the shadowed variable name refer to, which depends on the name resolution rules of the language. In each scope, the same name or identifier may refer to a different variable with a completely different type.  
+Variable shadowing is by no means limited to C++.   
+
+See an extreme example [here](https://godbolt.org/g/WV7DMC).
+
+```cpp
+bool x = true;                                              // x is a bool
+auto f(float x = 5.f) {                                     // x is a float
+    for (int x = 0; x < 1; ++x) {                           // x is an int
+        [x = std::string{"Boo!"}](){                        // x is a std::string
+            { auto [x,_] = std::make_pair(42ul, nullptr);}  // x is now unsigned long
+        }();
+    }
+}
+```
+<p align="center" clear="left">🎃</p>
+
+### ![terminator](../../assets/terminator_robot_head.gif) Terminators
+*"Hasta la vista, baby!"   
+-- Terminator*  
+<img src="../../assets/Halloween/terminator.jpg" width="200px" style="float:left;margin: 10px;"/>
+C++ provides surprisingly numerous ways for a program to terminate. These include both normal and unexpected termination.  
+When writing robust software and libraries, it is important to be be aware of the various ways your code might abruptly end. Similarly, many of these conditions might occur at module-boundaries such as DLLs.  
+Amongst the standard C++ program terminators we find: multiple flavors of `std::exit()`, `std::abort()`, `std::terminate()`, `std::signal()` and `std::raise()`.  
+
+I've written about, and mapped, some of these in my [Terminators post](http://videocortex.io/2016/terminators/).   
+<br clear="left"/>
+<p align="center">🎃</p>
+
+### 👻 Transparent Objects
+*"a thing and not a man; a child, or even `std::less<>` -- a black amorphous thing."   
+― Ralph Ellison, Invisible Man*  
+<img src="../../assets/Halloween/invisible_1.jpg" width="200px" style="float:left;margin: 10px;"/>
+Introduced in C++14, a *transparent function object* accepts arguments of arbitrary types and uses perfect forwarding, which avoids unnecessary copying and conversion when the function object is used in heterogeneous context, or with rvalue arguments. In particular, template functions such as `std::set::find` and `std::set::lower_bound` make use of this member type on their Compare types.  
+Notable Transparent Function Objects include [`std::less<>`](http://en.cppreference.com/w/cpp/utility/functional/less_void) and [`std::equal_to<>`](http://en.cppreference.com/w/cpp/utility/functional/equal_to_void).  
+
+<br clear="left"/>
+<p align="center">🎃</p>
+
+### 💀 Voldemort Types
+*"I can make things move without touching them."  
+-- Lord Voldemort, A.K.A "**He-Who-Must-Not-Be-Named**", HP&HBP*  
+<img src="../../assets/Halloween/voldemort.jpg" width="200px" style="float:left;margin: 10px;"/> 
+A *Voldemort Type* is a type that cannot be directly named outside of the scope it's declared in, but code outside the scope can still use this type.  
+
+Voldemort Types are [inspired by the D language](https://wiki.dlang.org/Voldemort_types) and function similarly in C++. See it in action [here](https://godbolt.org/g/qkD75u). Walter Bright's has written about them [here](http://www.drdobbs.com/article/print?articleId=232901591&siteSectionName=cpp).
+
+In the example below, `Voldemort` is a local type inside `createVoldemortType()`, an `auto` returning lambda, which returns a `Voldemort` instance to the caller. Despite being unable to *name* `Voldemort` inside `main()` we can still use variables of that type as we would any regular type.
+
+```cpp
+int main() 
+{    
+    auto createVoldemortType = [] // use lambda auto return type
+    {
+        struct Voldemort          // localy defined type
+        {   
+            int getValue() { return 21; }
+        };
+        return Voldemort{};       // return unnameable type
+    };
+        
+  auto unnameable = createVoldemortType();  // must use auto!    
+  decltype(unnameable) unnameable2;         // but, can be used with decltype
+  return unnameable.getValue() +            // can use unnameable API
+         unnameable2.getValue();            // returns 42                             
+}
+```
+Voldemort types can sometimes be used as a poor man's [OOP annonymous types for factory-like operations](https://godbolt.org/g/38JynE). This is stack-based *polymorphism* with no pointers and no dynamic allocation:
+
+```cpp
+struct IFoo // abstract interface
+{
+    virtual int getValue() = 0;
+};
+
+inline auto bar(IFoo& foo) { return foo.getValue(); } // calls virtual interface method
+
+int main() 
+{   
+    auto fooFactory = []
+    {
+        struct VoldeFoo: IFoo  // local Voldemort type derived from IFoo
+        {
+            int getValue() override { return 42; }
+        };
+        return VoldeFoo{};
+    };
+          
+    auto foo = fooFactory();
+    return bar(foo); // works as expected, returns 42.
+}
+```
+
+<p align="center">🎃</p>
+
+### 🧟 Zombies 
+*"We've got zombies in the C++ standard.  
+There are two factions: one of them stating that it is ok to have well defined zombies, while some people think that you'd better kill them."  
+-- [Jens Weller](https://twitter.com/meetingcpp), [C++ and Zombies](https://www.meetingcpp.com/blog/items/cpp-and-zombies-a-moving-question.html)*  
+<img src="../../assets/Halloween/zombie.jpg" width="200px" style="float:left;margin: 10px;"/>
+What happens to an object in scope after it is moved-from?    
+Without destructive move (which is not currently supported in C++), the lifetime of the remaining object "husk" carries on in a zombie-like state.  
+
+*"When you implement move constructors and assignment operators, you actually not just have to care about the move, but also about what is left behind. If you don't, you might create a zombie: an object, whose value (aka life) has moved somewhere else."*  
+
+[Eric Niebler's](https://twitter.com/ericniebler) guideline urges one to leave the object in a "minimally conscious state": ***"Moved-from objects must be in a valid but unspecified state"***. OTOH, [Sean Parent](https://twitter.com/SeanParent), is rooting for a [**destructive move**](http://sean-parent.stlab.cc/2014/05/30/about-move.html). 
+
+Despite appearances, zombies have little to do with [`std::decay`](http://en.cppreference.com/w/cpp/types/decay).
+
+*(As the [2017 Zombie Emoji](https://emojipedia.org/zombie/) is adopted on most platforms it will gradually make its appearance here. Here's a* ⚰️ *for you to enjoy until then.)*
+
+<p align="center">🎃</p>
+
+## Terminus
+C++ provides a rich source of inspiration for all your Halloween costume needs!  
+
+Nevertheless, I am quite sure this list is incomplete. If I missed any other denizens of the C++ depths, please do let me know in the comments below, on Twitter, Reddit or find me on [the C++ Slack channel](https://cpplang.now.sh/).  
+I may add them here or cage them until next year.... Mwahahaha!!
+<p align="center">🎃</p>
+
+*I ❤ feedback: If you dug this post, found it fun or terrifying or found an error, do drop me a line.*
+
+Credits: [palette](http://www.colourlovers.com/palette/54697/Trick_or_Treat)
+:: [banner](https://www.pexels.com/photo/2-jack-o-lantern-illustration-33139/)
