@@ -40,8 +40,7 @@ C++ is blessed with a plethora of gotchas, traps, caveats, pitfalls and footguns
 *"There is a dark corner of the type system that is little known other than to compier writers..."    
 -- [Alisdair Meredith](https://twitter.com/alisdairmered), [Abominable Function Types](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0172r0.html)*  
 
-<img src="../../assets/Halloween/abominable.jpg" width="200px" style="float:left;margin: 10px;"/>
-An *abominable* function type is the type produced by writing a function type followed by a *cv-ref* qualifier.
+<img src="../../assets/Halloween/abominable.jpg" width="200px" style="float:left;margin: 10px;"/>An *abominable* function type is the type produced by writing a function type followed by a *cv-ref* qualifier.
 
 ```cpp
 using abominable = void() const volatile &&;
@@ -70,9 +69,9 @@ Spooked? Curious? Read more in *[Tales of the Abominable Function Types!](http:/
 ### 👽 Aliens
 ***Bishop**: No, the hard-wiring between here and there was damaged. We can't **align** the dish.  
 **Ripley**: Well, then somebody has got to go out there, take a portable terminal, and patch in manually.  
--- Aliens 1986*  
-<img src="../../assets/Halloween/aliens.jpg" width="200px" style="float:left;margin: 10px;"/>
-Stretching it a bit thin so forgive my "silly" typo, and let's mention `alignas` (which when squinting hard enough you might just read as `aliens`) and its kin. The [`alignas` keyword specifier](http://en.cppreference.com/w/cpp/language/alignas) was introduced in C++11. It specifies the [alignment requirement](http://en.cppreference.com/w/cpp/language/object#Alignment) of a type or an object.  
+-- Aliens 1986*
+
+<img src="../../assets/Halloween/aliens.jpg" width="200px" style="float:left;margin: 10px;"/>Stretching it a bit thin so forgive my "silly" typo, and let's mention `alignas` (which when squinting hard enough you might just read as `aliens`) and its kin. The [`alignas` keyword specifier](http://en.cppreference.com/w/cpp/language/alignas) was introduced in C++11. It specifies the [alignment requirement](http://en.cppreference.com/w/cpp/language/object#Alignment) of a type or an object.  
 
 *Every object type has the property called alignment requirement, which is an integer value (of type `std::size_t` and always a power of 2) representing the number of bytes between successive addresses at which objects of this type can be allocated. The alignment requirement of a type can be queried with `alignof` or `std::alignment_of`. The pointer alignment function `std::align` can be used to obtain a suitably-aligned pointer within some buffer, and `std::aligned_storage` can be used to obtain suitably-aligned storage. Each object type imposes its alignment requirement on every object of that type; stricter alignment (with larger alignment requirement) can be requested using `alignas`. In order to satisfy alignment requirements of all non-static members of a class, padding may be inserted after some of its members.*
 
@@ -81,7 +80,8 @@ Stretching it a bit thin so forgive my "silly" typo, and let's mention `alignas`
 
 ### 👹 Demons
 *"Permissible undefined behavior ranges from ignoring the situation completely with unpredictable results, to having **demons** fly out of your nose."  
--- John F. Woods, [comp.std.c 1992](https://groups.google.com/forum/?hl=en#!msg/comp.std.c/ycpVKxTZkgw/S2hHdTbv4d8J)*  
+-- John F. Woods, [comp.std.c 1992](https://groups.google.com/forum/?hl=en#!msg/comp.std.c/ycpVKxTZkgw/S2hHdTbv4d8J)*
+
 <img src="../../assets/Halloween/demon.jpg" width="200px" style="float:left;margin: 10px;"/> The most notorious and infamous of all is probably the Nasal Demon of **Undefined Behavior**.  
 With its ancient origins in the C language, it predates many of the other members of this list. Nevertheless, it is still an ever present threat and terror to the unsuspecting journeyman.  
 
@@ -117,9 +117,9 @@ Read more about this cryptic tale [here](https://kristerw.blogspot.co.il/2017/09
 
 ### 👿 DLL Hell
 *“There is no greater sorrow then to recall our times of joy in wretchedness.”  
-― Dante Alighieri, Inferno*  
-<img src="../../assets/Halloween/hell.jpg" width="200px" style="float:left;margin: 10px;"/>
-[DLL Hell](https://en.wikipedia.org/wiki/DLL_Hell) is a term for the complications that arise when working with dynamic link libraries (DLLs) used with Microsoft Windows operating systems.  
+― Dante Alighieri, Inferno*
+
+<img src="../../assets/Halloween/hell.jpg" width="200px" style="float:left;margin: 10px;"/> [DLL Hell](https://en.wikipedia.org/wiki/DLL_Hell) is a term for the complications that arise when working with dynamic link libraries (DLLs) used with Microsoft Windows operating systems.  
 DLL Hell can manifest itself in many different ways in which applications do not launch or work correctly. Like Dante's Inferno [Circles of Hell](http://historylists.org/art/9-circles-of-hell-dantes-inferno.html), DLL Hell is the Windows ecosystem-specific form of the general concept [Dependency Hell](https://en.wikipedia.org/wiki/Dependency_hell).  
 <br clear="left"/>
 <p align="center">🎃</p>
@@ -127,8 +127,8 @@ DLL Hell can manifest itself in many different ways in which applications do not
 ### 🦆 Duck Typing
 *"If it looks like a duck and quacks like a duck but it needs batteries, you probably have the wrong abstraction."  
 -- [The Internets on the Liskov Substitution Principle](https://lostechies.com/derickbailey/2009/02/11/solid-development-principles-in-motivational-pictures/)*  
-<img src="../../assets/Halloween/duckula.jpg" width="200px" style="float:left;margin: 10px;"/>
-[*Duck typing*](https://en.wikipedia.org/wiki/Duck_typing) is an application of *The Duck Test* in type safety.  
+
+<img src="../../assets/Halloween/duckula.jpg" width="200px" style="float:left;margin: 10px;"/>[*Duck typing*](https://en.wikipedia.org/wiki/Duck_typing) is an application of *The Duck Test* in type safety.  
 [*The Duck Test*](https://en.wikipedia.org/wiki/Duck_test) is a form of [*abductive reasoning*](https://en.wikipedia.org/wiki/Abductive_reasoning).  
 This is its usual expression:
 
@@ -145,11 +145,25 @@ In fact, one of the main reasons for C++ Concepts (if/when) they finally land, i
 
 <p align="center">🎃</p>
 
+### 🛸 Flying Saucers
+*"Unknown objects are **operating** under intelligent control...  
+It is imperative that we learn where UFOs come from and what their purpose is..."   
+-- Admiral Hillenkoetter, First CIA Director 1960*  
+
+<img src="../../assets/Halloween/ufo.jpg" width="200px" style="float:left;margin: 10px;"/>C++20 may see the invasion of a new operator into the language:  
+**The <=> Spaceship Operator!**  
+This is a single, 3-way comparison, `<=>` operator, that once defined allows the compiler to automatically generate all other comparison operators: `<`, `<=`, `==`, `!=`, `>=`, `>`. It provides a consistent interface and support for partial ordering and other goodies. 
+
+Walter E. Brown gave a [lightning talk](https://youtu.be/_PKpyD6Ba1s) about it at CppCon 2017 and the latest proposal is [P0515R2](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0515r2.pdf). 
+
+<br clear="left"/>
+<p align="center">🎃</p>
+
 ### 😈 Imps
 *"It’s easy to confuse ‘what is’ with ‘what ought to be,’ especially when ‘what is’ has worked out in your favor."  
 -- Tyrion Lannister, A.K.A. **"The Imp"***  
-<img src="../../assets/Halloween/TheBottleImp.jpg" width="200px" style="float:left;margin: 10px;"/>
-The C++ standard mentions [undefined behavior](http://eel.is/c++draft/intro.defs#defns.undefined) Demon's two less dangerous brothers, [*unspecified behavior*](http://eel.is/c++draft/intro.defs#defns.unspecified) and the [*implementation-defined behavior Imp*](http://eel.is/c++draft/intro.defs#defns.impl.defined).
+
+<img src="../../assets/Halloween/TheBottleImp.jpg" width="200px" style="float:left;margin: 10px;"/>The C++ standard mentions [undefined behavior](http://eel.is/c++draft/intro.defs#defns.undefined) Demon's two less dangerous brothers, [*unspecified behavior*](http://eel.is/c++draft/intro.defs#defns.unspecified) and the [*implementation-defined behavior Imp*](http://eel.is/c++draft/intro.defs#defns.impl.defined).
 
 **Implementation-defined behavior**: unspecified behavior where each implementation documents how the choice is made.  
 In *implementation-defined behavior* the implementation is *required* to document/guarantee what exactly is going to happen, while in case of *unspecified behavior* the implementation is *not* required to document or guarantee anything.
@@ -161,8 +175,8 @@ Imps come in many form - [here's an impressive (if disheartening) list of known 
 ### 🕴️ Shadow Variables
 *"Only a lone foe could pierce that cordon; once inside, he would have to move by stealth, and strike with power and suddenness. I chose that mission."  
 -– The Shadow, [Shadow Magazine #131 1937](http://thelivingshadow.wikia.com/wiki/Shadow_Magazine_Vol_1_131)*  
-<img src="../../assets/Halloween/shadow.jpg" width="200px" style="float:left;margin: 10px;"/>  
-[Variable shadowing](https://en.wikipedia.org/wiki/Variable_shadowing) occurs when a variable declared within a certain scope (e.g a block, a function) has the same name as a variable declared in an outer scope. The outer variable is said to be shadowed by the inner variable, while the inner identifier is said to mask the outer identifier. This can lead to confusion, as it may be unclear which variable subsequent uses of the shadowed variable name refer to, which depends on the name resolution rules of the language. In each scope, the same name or identifier may refer to a different variable with a completely different type.  
+
+<img src="../../assets/Halloween/shadow.jpg" width="200px" style="float:left;margin: 10px;"/>[Variable shadowing](https://en.wikipedia.org/wiki/Variable_shadowing) occurs when a variable declared within a certain scope (e.g a block, a function) has the same name as a variable declared in an outer scope. The outer variable is said to be shadowed by the inner variable, while the inner identifier is said to mask the outer identifier. This can lead to confusion, as it may be unclear which variable subsequent uses of the shadowed variable name refer to, which depends on the name resolution rules of the language. In each scope, the same name or identifier may refer to a different variable with a completely different type.  
 Variable shadowing is by no means limited to C++.   
 
 See an extreme example [here](https://godbolt.org/g/WV7DMC).
@@ -182,8 +196,8 @@ auto f(float x = 5.f) {                                     // x is a float
 ### ![terminator](../../assets/terminator_robot_head.gif) Terminators
 *"Hasta la vista, baby!"   
 -- Terminator*  
-<img src="../../assets/Halloween/terminator.jpg" width="200px" style="float:left;margin: 10px;"/>
-C++ provides surprisingly numerous ways for a program to terminate. These include both normal and unexpected termination.  
+
+<img src="../../assets/Halloween/terminator.jpg" width="200px" style="float:left;margin: 10px;"/>C++ provides surprisingly numerous ways for a program to terminate. These include both normal and unexpected termination.  
 When writing robust software and libraries, it is important to be be aware of the various ways your code might abruptly end. Similarly, many of these conditions might occur at module-boundaries such as DLLs.  
 Amongst the standard C++ program terminators we find: multiple flavors of `std::exit()`, `std::abort()`, `std::terminate()`, `std::signal()` and `std::raise()`.  
 
@@ -194,8 +208,8 @@ I've written about, and mapped, some of these in my [Terminators post](http://vi
 ### 👻 Transparent Objects
 *"a thing and not a man; a child, or even `std::less<>` -- a black amorphous thing."   
 ― Ralph Ellison, Invisible Man*  
-<img src="../../assets/Halloween/invisible_1.jpg" width="200px" style="float:left;margin: 10px;"/>
-Introduced in C++14, a *transparent function object* accepts arguments of arbitrary types and uses perfect forwarding, which avoids unnecessary copying and conversion when the function object is used in heterogeneous context, or with rvalue arguments. In particular, template functions such as `std::set::find` and `std::set::lower_bound` make use of this member type on their Compare types.  
+
+<img src="../../assets/Halloween/invisible_1.jpg" width="200px" style="float:left;margin: 10px;"/>Introduced in C++14, a *transparent function object* accepts arguments of arbitrary types and uses perfect forwarding, which avoids unnecessary copying and conversion when the function object is used in heterogeneous context, or with rvalue arguments. In particular, template functions such as `std::set::find` and `std::set::lower_bound` make use of this member type on their Compare types.  
 Notable Transparent Function Objects include [`std::less<>`](http://en.cppreference.com/w/cpp/utility/functional/less_void) and [`std::equal_to<>`](http://en.cppreference.com/w/cpp/utility/functional/equal_to_void).  
 
 <br clear="left"/>
@@ -204,8 +218,8 @@ Notable Transparent Function Objects include [`std::less<>`](http://en.cpprefere
 ### 💀 Voldemort Types
 *"I can make things move without touching them."  
 -- Lord Voldemort, A.K.A "**He-Who-Must-Not-Be-Named**", HP&HBP*  
-<img src="../../assets/Halloween/voldemort.jpg" width="200px" style="float:left;margin: 10px;"/> 
-A *Voldemort Type* is a type that cannot be directly named outside of the scope it's declared in, but code outside the scope can still use this type.  
+
+<img src="../../assets/Halloween/voldemort.jpg" width="200px" style="float:left;margin: 10px;"/>A *Voldemort Type* is a type that cannot be directly named outside of the scope it's declared in, but code outside the scope can still use this type.  
 
 Voldemort Types are [inspired by the D language](https://wiki.dlang.org/Voldemort_types) and function similarly in C++. See it in action [here](https://godbolt.org/g/qkD75u). Walter Bright's has written about them [here](http://www.drdobbs.com/article/print?articleId=232901591&siteSectionName=cpp).
 
@@ -261,8 +275,8 @@ int main()
 *"We've got zombies in the C++ standard.  
 There are two factions: one of them stating that it is ok to have well defined zombies, while some people think that you'd better kill them."  
 -- [Jens Weller](https://twitter.com/meetingcpp), [C++ and Zombies](https://www.meetingcpp.com/blog/items/cpp-and-zombies-a-moving-question.html)*  
-<img src="../../assets/Halloween/zombie.jpg" width="200px" style="float:left;margin: 10px;"/>
-What happens to an object in scope after it is moved-from?    
+
+<img src="../../assets/Halloween/zombie.jpg" width="200px" style="float:left;margin: 10px;"/>What happens to an object in scope after it is moved-from?    
 Without destructive move (which is not currently supported in C++), the lifetime of the remaining object "husk" carries on in a zombie-like state.  
 
 *"When you implement move constructors and assignment operators, you actually not just have to care about the move, but also about what is left behind. If you don't, you might create a zombie: an object, whose value (aka life) has moved somewhere else."*  
@@ -271,15 +285,17 @@ Without destructive move (which is not currently supported in C++), the lifetime
 
 Despite appearances, zombies have little to do with [`std::decay`](http://en.cppreference.com/w/cpp/types/decay).
 
-*(As the [2017 Zombie Emoji](https://emojipedia.org/zombie/) is adopted on most platforms it will gradually make its appearance here. Here's a* ⚰️ *for you to enjoy until then.)*
-
 <p align="center">🎃</p>
 
 ## Terminus
-C++ provides a rich source of inspiration for all your Halloween costume needs!  
+C++ provides a rich seam of inspiration for all your creepy Halloween needs!  
 
 Nevertheless, I am quite sure this list is incomplete. If I missed any other denizens of the C++ depths, please do let me know in the comments below, on Twitter, Reddit or find me on [the C++ Slack channel](https://cpplang.now.sh/).  
 I may add them here or cage them until next year.... Mwahahaha!!
+
+*(As the 2017 [Zombie](https://emojipedia.org/zombie/) and [Flying Saucer](https://emojipedia.org/flying-saucer/) Emojis are adopted on more platforms they will gradually make their appearance here. Here's a* ⚰️ *and* 🚀 *for you to enjoy until then.)*
+
+
 <p align="center">🎃</p>
 
 *I ❤ feedback: If you dug this post, found it fun or terrifying or found an error, do drop me a line.*
