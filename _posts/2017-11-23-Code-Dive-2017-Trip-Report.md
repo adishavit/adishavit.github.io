@@ -41,7 +41,7 @@ I wholly recommend this talk - it was one of the most interesting, well planned 
 
 #### Mark Isaacson
 The talk briefly mentioned many of the new C++17 features and then, somewhat arbitrarily, focused on three: `std::string_view`, `if constexpr` and, my favorite - the as-yet _non_-C++ [operator-dot](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0416r1.pdf).  
-It was obvious that Mark is an experienced speaker and I'd recommend watching the video if only just for the intriguing `operator.` exposition.  
+It was obvious that Mark is an experienced speaker and I'd recommend [watching the video](https://youtu.be/4bcfGjimzec) if only just for the intriguing `operator.` exposition.  
 
 ### Escape Room
 
@@ -70,7 +70,7 @@ Odin Holmes is a great speaker and I had great expectations for this talk. I was
 Fortunately, both Eric and the session host Rafał Motriuk, a veteran radio journalist and a true professional, handled the glitches with grace and an impromptu quiz about Eric's musical taste.  
 
 The parts of the Ranges TS that made it into the standard are currently just a small subset of the [Ranges library](https://github.com/ericniebler/range-v3). Eric is now working on standardizing the true "meat" of the library: range views and adaptors. These lazy concepts are where ranges truely shine and I cannot wait until they become standardized. Eric continued by showing several exciting projects extending the reach of ranges. These include [*Towards Composable GPU Programming: Programming GPUs with Eager Actions and Lazy Views*](http://eprints.gla.ac.uk/146597/7/146597.pdf) and combining ranges, coroutines and asyncrony to build a C++ based reactive programming model.  
-Despite the technical glitches - a fantastic talk!
+Despite the technical glitches - a [fantastic talk](https://youtu.be/LNXkPh3Z418)!
 
 ### Developing C++ @ Facebook scale
 
