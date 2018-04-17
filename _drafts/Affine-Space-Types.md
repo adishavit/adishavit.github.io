@@ -241,6 +241,8 @@ This is technically correct for the `+` operator but as we've seen, definietly a
 
 ## The Affine Space
 
+### Definition
+
 Intuitively:  
 
 - A *point* is a position specified with coordinate values (e.g. location, address etc.).
@@ -249,16 +251,14 @@ Intuitively:
 If an *origin* is specified, then a *point* can be represented by a *vector* from the *origin*, however, a point is still *not* a vector in *coordinate-free* concepts.
 
 
-There are [many](https://en.wikipedia.org/wiki/Affine_space) [mathematical](http://www.cis.upenn.edu/~cis610/geombchap2.pdf) [definitions](http://mathworld.wolfram.com/AffineSpace.html) of an *affine space*, such as [*a vector space that has forgotten its origin*](https://ncatlab.org/nlab/show/affine+space).  
-
-Here's a minimally-jargonful definition:  
+There are [many](https://en.wikipedia.org/wiki/Affine_space) [mathematical](http://www.cis.upenn.edu/~cis610/geombchap2.pdf) [definitions](http://mathworld.wolfram.com/AffineSpace.html) of an *affine space*, such as [*"a vector space that has forgotten its origin"*](https://ncatlab.org/nlab/show/affine+space). Here's one with a minimal math jargon:  
 
 1. An *affine space* has two types of entities (i.e. *types*): ***points*** and ***vectors***. 
 2. All the *vectors* form a *vector space*:
-    1. ***Closure*** under two operations: 
+    1. ***Closure*** under the usual two operations: 
         - **Addition of vectors** 
         - **Multiplication by a scalar**.
-    2. Vector *subtraction* is "syntactic sugar" for addition with the right-hand-side multiplied by -1.
+    2. Vector *subtraction* and negation is "syntactic sugar" for addition with the right-hand-side multiplied by -1.
     3. A *Linear Combination* of vectors is also a vector and is the weighted sum of one of more vectors. 
 3. An affine space has the following properties:
     1. There is a unique vector *v* related to a pair of points *p* and *q*, defining two operations:
@@ -268,17 +268,55 @@ Here's a minimally-jargonful definition:
     3. An ***Affine Combination* of points into a *vector*** is a weighted sum of one of more *points* when the total sum of the weights is exactly 0.
     4. A weighted sum of one of more *points* when the total sum of the weights is neither 1 nor 0 is **undefined**.
 
-The *Affine Combination* properties 3.2 and 3.3 can be directly derived from 3.1 by showing that such a weighted sum can be factored to a sum of vectors (3.3) plus a point (3.2) ([single line proof](http://mrl.snu.ac.kr/~jehee/DDA/DDA_CourseNote.pdf#page=20)). 
+The *Affine Combination* properties 3.2 and 3.3 are not strictly definitions since they can be directly derived from 3.1 by showing that such a weighted sum can be factored to a sum of vectors (3.3) plus a point (3.2) ([single line proof](http://mrl.snu.ac.kr/~jehee/DDA/DDA_CourseNote.pdf#page=20)). 
 
 **IMPORTANT**: Note that an affine combination of points is *not* a general linear combination and is only defined when the weights sum to 0 or 1, and in each case the result is a different type - a vector or a point respectively. 
+
+### Types
+
+We can translate these definitions to types and operator type signatures  
+(`<arg types> -> <return type>`):
+
+1. An *affine space* API consists of three inter-related types: `Point`, `Vector`, `scalar`
+2. `Vector` closure consists of:
+    1. Addition (infix): 
+        - `Vector + Vector -> Vector`
+    2. Commutative scalar multiplication (infix): 
+        - `scalar * Vector -> Vector` 
+        - `Vector * scalar -> Vector`
+    3. As syntactic sugar, we can also define (infix) subtraction:
+        - `Vector - Vector -> Vector` 
+3. We also defined the following operator between `Point` and `Vector`:
+    1. Find displacement as (infix) point subtraction:
+        - `Point - Point -> Vector`
+    2. Displace point as (infix) addition:
+        - `Point + Vector -> Point`
+        - `Point - Vector -> Point` (syntactic sugar)
+    
+The types `Point` and `Vector` have the same dimension. They often also share the exact same representation e.g. a tuple of one of more numbers. The numbers are typically (but not always) of the same type as `scalar`. Of course, `Point` and `Vector` may be template classes parameterized by aspects like, element type, precision etc. In `<chrono>` for example, `chrono::duration<>` is a *family* of types and its internal representation generally differs from that of `chrono::time_point<>`.    
+
+If our types are mutable, we can also add the following operators:
+
+- `Vector *= scalar -> Vector`
+- `Vector += Vector -> Vector`
+- `Vector -= Vector -> Vector`
+- `-Vector -> Vector` (unary) negation
+- `Point += Vector -> Point`
+- `Point -= Vector -> Point`
+
+We cannot add `Point -= Point -> Vector` since the return type is a `Vector` and not the left hand side `Point`.
+
 
 
 ------
 
-
+### Draft notes:
 
 - https://eli.thegreenplace.net/2018/affine-transformations/ 
 - https://youtu.be/A9-fT-QTRH8 - 
+
+<https://www.one-tab.com/page/ka_HUOj3S2qWfvIfl8ES_A>
+
 
 <https://youtu.be/jJyKp2Hzee0>
 
