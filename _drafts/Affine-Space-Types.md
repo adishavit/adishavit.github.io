@@ -25,7 +25,7 @@ This post is *not* about other common *"affine"* topics such as:
 
 Although these may be indirectly and mathematically related, any such link is beyond the scope of this post.   Similarly, I will not delve into many of the deeper mathematical aspects, details and connections.    
 
-My focus (and perhaps the main reason you may find this post interesting and different from other resources) will be on the formalization and its role in better API design.  
+My focus (and perhaps the main reason you may find this post interesting and different from other resources) will be on the formalization and its role in better API design and more specifically the design and public interface of classes or class templates.  
 
 **WARNING:** I am not a mathematician. The explanations, intuitions and interpretations are my own and thus may be utterly wrong. If you find such errors, please drop me a line in the comments (or elsewhere) so I can be enlightened and correct the mistakes.    
 I am writing this as a programmer to a programmer, so although familiarity with elementary-school Linear Algebra is assumed, that you are a mathematician is not.
@@ -251,7 +251,7 @@ Intuitively:
 If an *origin* is specified, then a *point* can be represented by a *vector* from the *origin*, however, a point is still *not* a vector in *coordinate-free* concepts.
 
 
-There are [many](https://en.wikipedia.org/wiki/Affine_space) [mathematical](http://www.cis.upenn.edu/~cis610/geombchap2.pdf) [definitions](http://mathworld.wolfram.com/AffineSpace.html) of an *affine space*, such as [*"a vector space that has forgotten its origin"*](https://ncatlab.org/nlab/show/affine+space). Here's one with a minimal math jargon:  
+There are [many](https://en.wikipedia.org/wiki/Affine_space) [mathematical](http://www.cis.upenn.edu/~cis610/geombchap2.pdf) [definitions](http://mathworld.wolfram.com/AffineSpace.html) of an *affine space*, such as [*"a vector space that has forgotten its origin"*](https://ncatlab.org/nlab/show/affine+space). Here's one with minimal math jargon:  
 
 1. An *affine space* has two types of entities (i.e. *types*): ***points*** and ***vectors***. 
 2. All the *vectors* form a *vector space*:
@@ -270,7 +270,9 @@ There are [many](https://en.wikipedia.org/wiki/Affine_space) [mathematical](http
 
 The *Affine Combination* properties 3.2 and 3.3 are not strictly definitions since they can be directly derived from 3.1 by showing that such a weighted sum can be factored to a sum of vectors (3.3) plus a point (3.2) ([single line proof](http://mrl.snu.ac.kr/~jehee/DDA/DDA_CourseNote.pdf#page=20)). 
 
-**IMPORTANT**: Note that an affine combination of points is *not* a general linear combination and is only defined when the weights sum to 0 or 1, and in each case the result is a different type - a vector or a point respectively. 
+**IMPORTANT**: Note that an affine combination of points is *not* a general linear combination and is only defined when the weights sum to 0 or 1, and in each case the result is a different type - a vector or a point respectively.  
+
+The affine combination weight tuples are called the [*barycentric coordinates*](http://graphics.cs.ucdavis.edu/education/GraphicsNotes/GraphicsNotes/Barycentric-Coordinates/Barycentric-Coordinates.html) of the points of the space.
 
 ### Types
 
@@ -306,26 +308,64 @@ If our types are mutable, we can also add the following operators:
 
 We cannot add `Point -= Point -> Vector` since the return type is a `Vector` and not the left hand side `Point`.
 
+### Affine Combinations
+
+**Spoiler alert**: Quiz Solutions Ahead!  
+
+Given two integers `a` and `b`, the mid-point (up to truncation) is `m = (a+b)/2`.  
+Given two pointers `a` and `b` into an array, the middle-element between them cannot be `m = (a+b)/2` since, as we've seen, one cannot add pointers. Instead the mathematically equivalent `m = a + (b-a)/2` maintains the affine semantics of adding a (scaled) displacement to a position.  
+We can also notice that mathematically: `(a + b)/2 == ½*a + ½*b`, and `½ + ½ = 1`.  
+So the mid-point is in fact a case of an *affine combination* since the weights sum up to 1.  
+In higher dimension, e.g. given 2D points `p`,`q`,`r`, the center of gravity is the affine combination `(p+q+r)/3` (or `CoG = ⅓*p + ⅓*q + ⅓*r`).
+
+From an API design point of view, the operators defined above are typically straightforward to implement. However, they do not allow one to write (only valid) affine-combinations. One must mathematically decompose the affine combination into the constituent point/vector operations (which, incidentally, is exactly what the affine-combination derivation proof does!).  
+
+I had not seen language constructs or libraries or APIs that allow and enforce that the combination weights sum exactly to either 0 or 1. For weights that are known at compile time, one can imagine an expression template decomposition that can validate this at compile-time (and allow Point/scalar multiplication and Point/Point addition operators only for intermediate temporaries). For run-time weights this would have to become a run-time "semantics" test.  
+
+If you know of one or come up with such an interface do let me know. 
+
+<p align="center">💪</p>
+
+## Strong Types
+
+Strong type libraries such as [Jonathan Müller's](https://foonathan.net/blog/2016/10/11/type-safe.html) [type_safe](https://github.com/foonathan/type_safe), [Jonathan Boccara's](https://www.fluentcpp.com/2016/12/08/strong-types-for-strong-interfaces/) [NamedType](https://github.com/joboccara/NamedType) and [Björn Fahller's](http://playfulprogramming.blogspot.com) [strong_type](https://github.com/rollbear/strong_type) allow us to create separate distinct types from the same underling types. Similarly, unit type libraries allow compile time enforcement of unit management.  
+
+Affine space semantics, provide another venue for strong type semantic enforcement that is specifically tailored to representing the general concepts of positions and displacements. In fact, when writing a physics or engineering system such as, say, a planetary orbit insertion module, it would make sense to apply *both* a unit system *and* affine semantics to catch at compile time problems that might otherwise only be identified at investigating committee time. Both are orthogonal and provide multiple layers of compile time security. In fact, amongst other goodies, this is exactly what `chrono` provides: a time-point and duration abstration *and* a generic time units system.  
+
+As I was writing this post, [the question of Martian time and date representions](https://github.com/moment/moment/issues/2391) came up on Slack and how [C++20] `<chrono>` will handle such unearthly appointments. Howard Hinnant  (the `chorono` designer) commented: 
+
+> See [here](https://github.com/HowardHinnant/date/blob/master/include/date/islamic.h), [here](https://github.com/HowardHinnant/date/blob/master/include/date/julian.h) and [here](https://github.com/HowardHinnant/date/blob/master/include/date/iso_week.h) for examples of non-civil calendars that can interact with `<chrono>`.  Mars could just be another calendar.  At the end of the day, all that is required is conversions to and from `sys_time`, which is [Unix Time](https://en.wikipedia.org/wiki/Unix_time).
+>
+> Martian days, hours and minutes could easily be duration aliases in the Martian namespace.  The key is to not have a single type represent more than 1 thing.  E.g. a Martian year and an Earth year should not both be represented as `std::chrono::year`.
+>
+> Choose your precision and choose to truncate it however you like if you choose to truncate at all.
 
 
-------
+Freely interpreting this: Take your earthly `time_point`, subtract the Earthly "origin" date (the Unix 00:00:00 (Thursday, 1 January 1970)) to get a "calendar-free" `duration`. Now add this duration to the Unix time as represented in the chosen Martian date system. The result is a Martian `time_point` in the chosen calendar.
 
-### Draft notes:
+### Reification
 
-- https://eli.thegreenplace.net/2018/affine-transformations/ 
-- https://youtu.be/A9-fT-QTRH8 - 
+The concepts I presented here have well defined semantics and should help guide you for better API design for your custom types. 
 
-<https://www.one-tab.com/page/ka_HUOj3S2qWfvIfl8ES_A>
+I wish I could point you to a *generic* library that can take an `int` or `float` or a "unit"ed `meter` and also a `cv::Point` or `Vector` to create the desired affine `Point`+`Vector` types mentioned above with the proper semantics.  
+
+However, I have not yet written this library and will leave this, for now, as the proverbial though challenging "exercise to the reader". It does seem to require a powerful strong-type facility that can also transparently handle both primitive 1D types, unit types and custom user defined types (the libraries mentioned above are mostly geared towards 1D primitive types). 
+
+If you do come up with such a generic library facility - do let me know and I will link to it here.
 
 
-<https://youtu.be/jJyKp2Hzee0>
+*I ❤ feedback, so if you found this post interesting or you have more thoughts on this subject, please leave a message in the comments, Twitter or Reddit. If you know of generic solutions to this fascinating structure, please DO let me know and follow me on [Twitter](https://twitter.com/adishavit) for more updates.*
 
-<https://eli.thegreenplace.net/2018/affine-transformations/>
 
-affine combinations are not supported by pointers
-mention relation to strong types and unit types.
-mutatability
-atypical for Abstract Algebras to have 2 types of interacting objects
-Category Theory
+##  References
+
+- The presentation [Affine Geometry by Jehee Lee](http://slideplayer.com/slide/8771279/)  ([PDF ver.](http://mrl.snu.ac.kr/~jehee/DDA/DDA_CourseNote.pdf)) had the least amount of math jargon and is the basis for many of the Definitions I presented here.
+- In an answer to my question [Affine Spaces and Type Theory](https://math.stackexchange.com/questions/2555570/affine-spaces-and-type-theory) the answerer suggests a C# CRTP solution as a generic affine utility.
+- [These](http://www.cs.utah.edu/~xchen/blossom/node3.html) [notes](https://people.eecs.ku.edu/~jrmiller/Courses/VectorGeometry/Spaces.html) provided good explanations of [affine combinations](http://graphics.cs.ucdavis.edu/education/GraphicsNotes/GraphicsNotes/Affine-Combinations/Affine-Combinations.html) and [barycentric coordinates](http://graphics.cs.ucdavis.edu/education/GraphicsNotes/GraphicsNotes/Barycentric-Coordinates/Barycentric-Coordinates.html).
+- Eli Bendersky has an [approachable blog post about Affine Transformations](https://eli.thegreenplace.net/2018/affine-transformations/).
+- The indefatigable Norman Wildberger present Affine Geometry in the video [AlgCalcOne: Novel Algebraic Operations for Affine Geometry](https://www.youtube.com/watch?v=A9-fT-QTRH8)
+- Mathematically oriented references include [Wikipedia](https://en.wikipedia.org/wiki/Affine_space), [MathWorld](http://mathworld.wolfram.com/AffineSpace.html) and [nLab Category Theory Wiki](https://ncatlab.org/nlab/show/affine+space). This book/course chapter [Basics of Affine Geometry](http://www.cis.upenn.edu/~cis610/geombchap2.pdf) goes into a lot of the mathy details.  
+- In [A mathematical formalisation of dimensional analysis](https://terrytao.wordpress.com/2012/12/29/a-mathematical-formalisation-of-dimensional-analysis/) Terry Tao discusses the related subject of unit types and dimension analysis from a mathematical perspective. 
+ 
 
 ### Footnotes
