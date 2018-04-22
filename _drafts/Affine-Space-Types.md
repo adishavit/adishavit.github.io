@@ -66,7 +66,7 @@ The result is a ***pointer type***.
 - Integers can (obviously) also be added, subtracted and multiplied by each other to get other integers (closure under addition and multiplication [[^3]]).  
   Note however, that *mathematically* for integers *subtraction* is not really a standalone operation (operator) but really just a notational shorthand (or syntactic sugar) for addition with the inverse (the right-hand-side multiplied by `-1`).     
 
-[^1]: In C++ the correct type is in fact [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) which on some platforms may not be an `int`. 
+[^1]: In C++ the correct "type" is in fact [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) which on some platforms may not be an `int`. To be totally pedantic: *"`std::ptrdiff_t` is the signed integer type of the result of subtracting two pointers."* The actual type is *implementation-defined*. 
 
 [^2]: For the pedantic, yes, only pointers to elements of the *same* array (including the pointer one past the end of the array) may be subtracted from each other, otherwise the behavior is undefined.
 
@@ -92,7 +92,7 @@ The ***value*** of a pointer is just a number, an integer, an index, specifying 
 **No**. Even in C, and most likely even in earlier languages, there is a **semantic** distinction of types that does not allow pointers to behave as regular (indexing) integers.  
 In other words, a pointer is an integral *value* (typically unsigned) with non-arithmetic semantics (and hence a special syntax).
 
-In C++, which is generally more strongly typed than C, the correct integer type to use for pointer arithmetic in *not* `int` but is an implementation-defined standard type called [`std::ptr_diff`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) (which may or may not be an `int`). 
+In C++, which is generally more strongly typed than C, the correct integer type to use for pointer arithmetic in *not* `int` but is an implementation-defined standard type called [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) (which may or may not be an `int`). 
 
 The final observations are about ***commutativity***:  
 
@@ -337,11 +337,49 @@ As I was writing this post, [the question of Martian time and date representions
 > See [here](https://github.com/HowardHinnant/date/blob/master/include/date/islamic.h), [here](https://github.com/HowardHinnant/date/blob/master/include/date/julian.h) and [here](https://github.com/HowardHinnant/date/blob/master/include/date/iso_week.h) for examples of non-civil calendars that can interact with `<chrono>`.  Mars could just be another calendar.  At the end of the day, all that is required is conversions to and from `sys_time`, which is [Unix Time](https://en.wikipedia.org/wiki/Unix_time).
 >
 > Martian days, hours and minutes could easily be duration aliases in the Martian namespace.  The key is to not have a single type represent more than 1 thing.  E.g. a Martian year and an Earth year should not both be represented as `std::chrono::year`.
->
+
 > Choose your precision and choose to truncate it however you like if you choose to truncate at all.
 
-
 Freely interpreting this: Take your earthly `time_point`, subtract the Earthly "origin" date (the Unix 00:00:00 (Thursday, 1 January 1970)) to get a "calendar-free" `duration`. Now add this duration to the Unix time as represented in the chosen Martian date system. The result is a Martian `time_point` in the chosen calendar.
+
+### Subtleties
+In the 1D case of pointers, the displacement type is an (implementation defined) signed integer. As primitive integers, they can be multiplied and also use to offset different pointer types.  
+Offset multiplication is a valid operation only when one of the product elements is considered as the scalar. Displacement-multiplication is undefined in general.  
+A more interesting case is as follows:
+
+```cpp
+int arr[42];                // an array of ints
+int* pint = &arr[0];        // an int*
+int* qint = &arr[42];       // another int*
+auto diff = qint-pint;      // the offset between int "cells"
+                            
+char str[42];               // an array of chars
+char* pchar = &str[0];      // a char*
+char* qchar = pchar + diff; // <<== ???
+```
+
+Here the C[++] type system allows us to use the displacement `diff` between two `int*` positions to offset a `char*` position.  
+
+**Are these semantics valid?** 
+
+As far as I can tell, that is a domain specific question. There are several cases one may encounter each with potentially different semantics.  
+In the general case, say with two unrelated arrays or STL containers, e.g. for `std::vector<>`, the differnece type is `std::vector<T>::iterator::difference_type` and may potentially be dependent on `T` so such operations would be disallowed and maybe potentially UB for array.  
+
+However, in some cases this is not so. Consider using SoA (Struct of Arrays) - a commen technique in gaming where e.g. 3D object vertex XYZ coordinates are stored separately from the texture UV and color RGB values. Although all the arrays are of different types,  have exactly the same length. Here there is a strong affinity (see what I did here?) between the arrays and offsetting to the middle vertex means hopping the same number of hops in the texture and color arrays as well. In this case, semantics that allow mixing of types does make sense.  
+
+Another case, suggested by [Björn Fahller](https://twitter.com/bjorn_fahller?lang=en), is the case of an isomorphism between the systems or spaces. For example when plotting a graph. Then it obviously makes sense to translate e.g. durations to centimeters or pixels, but this is an isomorphic translation, where you map from one space to another and and expicit [unit] conversion should be required.
+
+> ### Does `size()` Matter?
+> There is a never-really-ending discussion (i.e. disagreement and/or regret) about the type that the `.size()` method on standard containers (or views) should return. Should it be signed or unsigned?  
+> The standard chose `size()` to return `std::distance(begin(), end())` which as we've seen returns `std::iterator_traits<T>::difference_type`. `difference_type` is ["a type that can be used to identify distance between iterators"](http://en.cppreference.com/w/cpp/iterator/iterator_traits). This means that, in general, such a distance must be signed. Signed integers can represent only half as many container elements as the unsigned type ([standard] containers cannot contain a negative number of elements) and is a type for which overflow in arithmetic is undefined behavior.   
+>
+> Was this the correct choice?  
+> For the chosen definition of `size()` returning `std::distance(begin(), end())`, yes.  
+> 
+> But that was not the only option. Both `std::tuple_size` and `std::variant_size` return a `std::integral_constant<std::size_t,...>` of `std::size_t` (`std::variant_size_v` "returns" `std::size_t`). But one could argue that these are `constexpr` compile-time values and not exactly relevant for [run-time] iterators and their kin. Another example seems to be Ranges, where view sizes are also `std::size_t` - an unsigned type.  
+> 
+> The debate will likely go on (though the decision has long been made).
+> 
 
 ### Reification
 
@@ -353,8 +391,11 @@ However, I have not yet written this library and will leave this, for now, as th
 
 If you do come up with such a generic library facility - do let me know and I will link to it here.
 
+*[Björn Fahller](https://twitter.com/bjorn_fahller?lang=en) reviewed this post and made excellent suggestions and comments. Thank you Björn!* 
 
-*I ❤ feedback, so if you found this post interesting or you have more thoughts on this subject, please leave a message in the comments, Twitter or Reddit. If you know of generic solutions to this fascinating structure, please DO let me know and follow me on [Twitter](https://twitter.com/adishavit) for more updates.*
+<p align="center">❤️</p>
+
+*I* ❤ *feedback, so if you found this post interesting or you have more thoughts on this subject, please leave a message in the comments, Twitter or Reddit. If you know of generic solutions to this fascinating structure, please DO let me know and follow me on [Twitter](https://twitter.com/adishavit) for more updates.*
 
 
 ##  References
@@ -363,7 +404,8 @@ If you do come up with such a generic library facility - do let me know and I wi
 - In an answer to my question [Affine Spaces and Type Theory](https://math.stackexchange.com/questions/2555570/affine-spaces-and-type-theory) the answerer suggests a C# CRTP solution as a generic affine utility.
 - [These](http://www.cs.utah.edu/~xchen/blossom/node3.html) [notes](https://people.eecs.ku.edu/~jrmiller/Courses/VectorGeometry/Spaces.html) provided good explanations of [affine combinations](http://graphics.cs.ucdavis.edu/education/GraphicsNotes/GraphicsNotes/Affine-Combinations/Affine-Combinations.html) and [barycentric coordinates](http://graphics.cs.ucdavis.edu/education/GraphicsNotes/GraphicsNotes/Barycentric-Coordinates/Barycentric-Coordinates.html).
 - Eli Bendersky has an [approachable blog post about Affine Transformations](https://eli.thegreenplace.net/2018/affine-transformations/).
-- The indefatigable Norman Wildberger present Affine Geometry in the video [AlgCalcOne: Novel Algebraic Operations for Affine Geometry](https://www.youtube.com/watch?v=A9-fT-QTRH8)
+- The indefatigable Norman Wildberger presents Affine Geometry in the video [AlgCalcOne: Novel Algebraic Operations for Affine Geometry](https://www.youtube.com/watch?v=A9-fT-QTRH8)
+- Björn Fahller's ACCU 2018 talk [Type safe C++ – LOL! :-)](https://youtu.be/SWHvNvY-PHw) gives an overview of the strong type libraries mentioned above and gives an explicit example of strong types with affine space semantics. 
 - Mathematically oriented references include [Wikipedia](https://en.wikipedia.org/wiki/Affine_space), [MathWorld](http://mathworld.wolfram.com/AffineSpace.html) and [nLab Category Theory Wiki](https://ncatlab.org/nlab/show/affine+space). This book/course chapter [Basics of Affine Geometry](http://www.cis.upenn.edu/~cis610/geombchap2.pdf) goes into a lot of the mathy details.  
 - In [A mathematical formalisation of dimensional analysis](https://terrytao.wordpress.com/2012/12/29/a-mathematical-formalisation-of-dimensional-analysis/) Terry Tao discusses the related subject of unit types and dimension analysis from a mathematical perspective. 
  
