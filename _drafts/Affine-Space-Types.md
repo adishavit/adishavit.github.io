@@ -371,15 +371,19 @@ Another case, suggested by [Björn Fahller](https://twitter.com/bjorn_fahller?la
 
 > ### Does `size()` Matter?
 > There is a never-really-ending discussion (i.e. disagreement and/or regret) about the type that the `.size()` method on standard containers (or views) should return. Should it be signed or unsigned?  
-> The standard chose `size()` to return `std::distance(begin(), end())` which as we've seen returns `std::iterator_traits<T>::difference_type`. `difference_type` is ["a type that can be used to identify distance between iterators"](http://en.cppreference.com/w/cpp/iterator/iterator_traits). This means that, in general, such a distance must be signed. Signed integers can represent only half as many container elements as the unsigned type ([standard] containers cannot contain a negative number of elements) and is a type for which overflow in arithmetic is undefined behavior.   
 >
-> Was this the correct choice?  
-> For the chosen definition of `size()` returning `std::distance(begin(), end())`, yes.  
-> 
-> But that was not the only option. Both `std::tuple_size` and `std::variant_size` return a `std::integral_constant<std::size_t,...>` of `std::size_t` (`std::variant_size_v` "returns" `std::size_t`). But one could argue that these are `constexpr` compile-time values and not exactly relevant for [run-time] iterators and their kin. Another example seems to be Ranges, where view sizes are also `std::size_t` - an unsigned type.  
-> 
-> The debate will likely go on (though the decision has long been made).
-> 
+> The [standard chose the container `size()` methods to return `size_type`](http://eel.is/c++draft/container.requirements) which is an *implementation defined* "**unsigned** integer type" which "can represent any non-negative value of `difference_type`".  
+>
+> [cppreference.com](http://en.cppreference.com/w/cpp/container/vector/size) claims that : "`size()` returns the number of elements in the container, i.e. `std::distance(begin(), end())`.".
+>
+> However, the return type of `std::distance()` is `difference_type` is ["a **signed** integer type" and "is identical to the difference type of `X​::​iterator` and `X​::​const_­iterator`"](http://eel.is/c++draft/container.requirements).
+>
+>`difference_type` is ["a type that can be used to identify distance between iterators"](http://en.cppreference.com/w/cpp/iterator/iterator_traits). This means that as we've seen, in general such a distance must be signed.  
+>However, signed integers can represent only half as many elements as the unsigned type ([standard] containers cannot contain a negative number of elements) and is a type for which overflow in arithmetic is undefined behavior.   
+>So, `size()` may not, in fact, be implemented as a cast of `std::distance(begin(), end())` since it is specified to be unsigned and may be larger than what `std::distance` could be able return. 
+>
+> There are other subtleties related to overflows, unsigned vs. signed arithmetic and undefined behavior. The debate will likely rage on, but is way beyond the scope of this post.  
+>[Reddit readers: *please* do not latch onto just this sidebar.]
 
 ### Reification
 
