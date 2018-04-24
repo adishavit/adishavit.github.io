@@ -3,7 +3,7 @@ title: "Affine Space Types"
 categories: [C++, Mathematics, API, Design]
 tags: [C++, Mathematics, API, Design]
 ---
-Well defined semantics for positions and displacements.
+Well defined semantics for positions and displacements.  
 
 ![star-trails](../../assets/star-trails-banner.jpg)    
 
