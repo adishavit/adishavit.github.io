@@ -66,7 +66,7 @@ The result is a ***pointer type***.
 - Integers can (obviously) also be added, subtracted and multiplied by each other to get other integers (closure under addition and multiplication [[^3]]).  
   Note however, that *mathematically* for integers *subtraction* is not really a standalone operation (operator) but really just a notational shorthand (or syntactic sugar) for addition with the inverse (the right-hand-side multiplied by `-1`).     
 
-[^1]: In C++ the correct "type" is in fact [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) which on some platforms may not be an `int`. To be totally pedantic: *"`std::ptrdiff_t` is the signed integer type of the result of subtracting two pointers."* The actual type is *implementation-defined*. 
+[^1]: In C++ ([and C](http://en.cppreference.com/w/c/types/ptrdiff_t)) the correct "type" is in fact [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) which on some platforms may not be an `int`. To be totally pedantic: *"`std::ptrdiff_t` is the signed integer type of the result of subtracting two pointers."* The actual type is *implementation-defined*. 
 
 [^2]: For the pedantic, yes, only pointers to elements of the *same* array (including the pointer one past the end of the array) may be subtracted from each other, otherwise the behavior is undefined.
 
@@ -92,7 +92,7 @@ The ***value*** of a pointer is just a number, an integer, an index, specifying 
 **No**. Even in C, and most likely even in earlier languages, there is a **semantic** distinction of types that does not allow pointers to behave as regular (indexing) integers.  
 In other words, a pointer is an integral *value* (typically unsigned) with non-arithmetic semantics (and hence a special syntax).
 
-In C++, which is generally more strongly typed than C, the correct integer type to use for pointer arithmetic in *not* `int` but is an implementation-defined standard type called [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) (which may or may not be an `int`). 
+In C++ (as in C) the correct integer type to use for pointer arithmetic in *not* `int` but is an implementation-defined standard type called [`std::ptrdiff_t`](http://en.cppreference.com/w/cpp/types/ptrdiff_t) (which may or may not be an `int`). 
 
 The final observations are about ***commutativity***:  
 
