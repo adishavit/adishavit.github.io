@@ -312,7 +312,7 @@ We cannot add `Point -= Point -> Vector` since the return type is a `Vector` and
 
 **Spoiler alert**: Quiz Solutions Ahead!  
 
-Given two integers `a` and `b`, the mid-point (up to truncation) is `m = (a+b)/2`.  
+Given two integers `a` and `b`, the mid-point (up to truncation and [ignoring overflow](https://research.googleblog.com/2006/06/extra-extra-read-all-about-it-nearly.html)) is `m = (a+b)/2`.  
 Given two pointers `a` and `b` into an array, the middle-element between them cannot be `m = (a+b)/2` since, as we've seen, one cannot add pointers. Instead the mathematically equivalent `m = a + (b-a)/2` maintains the affine semantics of adding a (scaled) displacement to a position.  
 We can also notice that mathematically: `(a + b)/2 == ½*a + ½*b`, and `½ + ½ = 1`.  
 So the mid-point is in fact a case of an *affine combination* since the weights sum up to 1.  
