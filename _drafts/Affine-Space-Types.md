@@ -380,9 +380,9 @@ Another case, suggested by [Björn Fahller](https://twitter.com/bjorn_fahller?la
 >
 >`difference_type` is ["a type that can be used to identify distance between iterators"](http://en.cppreference.com/w/cpp/iterator/iterator_traits). This means that as we've seen, in general such a distance must be signed.  
 >However, signed integers can represent only half as many elements as the unsigned type ([standard] containers cannot contain a negative number of elements) and is a type for which overflow in arithmetic is undefined behavior.   
->So, `size()` may not, in fact, be implemented as a cast of `std::distance(begin(), end())` since it is specified to be unsigned and may be larger than what `std::distance` could be able return. 
+>So, `size()` might not, in fact, be implemented as a cast of `std::distance(begin(), end())` since it is specified to be unsigned and may be larger than what `std::distance` could be able return. 
 >
-> There are other subtleties related to overflows, unsigned vs. signed arithmetic and undefined behavior. The debate will likely rage on, but is way beyond the scope of this post.  
+> There are other subtleties related to overflows, wraparound, unsigned vs. signed arithmetic and undefined behavior. The debate will likely rage on, but is way beyond the scope of this post.  
 >[Reddit readers: *please* do not latch onto just this sidebar.]
 
 ### Reification
