@@ -288,6 +288,7 @@ We can translate these definitions to types and operator type signatures
         - `Vector * scalar -> Vector`
     3. As syntactic sugar, we can also define (infix) subtraction:
         - `Vector - Vector -> Vector` 
+        - `-Vector -> Vector` (unary) negation
 3. We also defined the following operator between `Point` and `Vector`:
     1. Find displacement as (infix) point subtraction:
         - `Point - Point -> Vector`
@@ -302,7 +303,6 @@ If our types are mutable, we can also add the following operators:
 - `Vector *= scalar -> Vector`
 - `Vector += Vector -> Vector`
 - `Vector -= Vector -> Vector`
-- `-Vector -> Vector` (unary) negation
 - `Point += Vector -> Point`
 - `Point -= Vector -> Point`
 
@@ -395,7 +395,12 @@ However, I have not yet written this library and will leave this, for now, as th
 
 If you do come up with such a generic library facility - do let me know and I will link to it here.
 
-*[Björn Fahller](https://twitter.com/bjorn_fahller?lang=en) reviewed this post and made excellent suggestions and comments. Thank you Björn!* 
+### Acknowledgements
+
+[Björn Fahller](https://twitter.com/bjorn_fahller?lang=en) reviewed this post and made excellent suggestions and comments. Thank you Björn!  
+This post was also inspired and encouraged by multiple discussions on the C++ Slack.  
+Corrections and inaccuracies were kindly pointed out by: [@ubsanitizer](https://twitter.com/ubsanitizer), [@Matt](https://twitter.com/matt_dz)
+
 
 <p align="center">❤️</p>
 
