@@ -363,7 +363,7 @@ Here the C[++] type system allows us to use the displacement `diff` between two 
 **Are these semantics valid?** 
 
 As far as I can tell, that is a domain specific question. There are several cases one may encounter each with potentially different semantics.  
-In the general case, say with two unrelated arrays or STL containers, e.g. for `std::vector<>`, the differnece type is `std::vector<T>::iterator::difference_type` and may potentially be dependent on `T` so such operations would be disallowed and maybe potentially UB for array.  
+In the general case, say with two unrelated arrays or STL containers, e.g. for `std::vector<>`, the difference type is `std::vector<T>::iterator::difference_type` and may potentially be dependent on `T` so such operations would be disallowed and maybe potentially UB for array.  
 
 However, in some cases this is not so. Consider using SoA (Struct of Arrays) - a commen technique in gaming where e.g. 3D object vertex XYZ coordinates are stored separately from the texture UV and color RGB values. Although all the arrays are of different types,  have exactly the same length. Here there is a strong affinity (see what I did here?) between the arrays and offsetting to the middle vertex means hopping the same number of hops in the texture and color arrays as well. In this case, semantics that allow mixing of types does make sense.  
 
