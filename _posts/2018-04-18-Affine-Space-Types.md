@@ -145,6 +145,20 @@ We may be seeing here an API design decision that may not have fully considered 
 
 [^4]: At least for the non-`InputIterator` cases.
 
+<p align="center">👍</p>
+
+**Post-posting Update:** As **Ed C** points out in the comments below, the standard library function [`std::next()`](http://en.cppreference.com/w/cpp/iterator/next) (and `std::prev()` too) in fact *is* equivalent to the integer-offseting operator `+` and has the same semantics (it only *defaults* in incrementing by 1):
+
+```cpp
+typedef float T;                    // declare T
+std::set<T> set={0,1,2,3};          // an set of Ts
+auto beg = set.begin();             // iterator to first element in the set
+auto end = set.end();               // end iterator 
+auto cnt = std::distance(beg, end); // element count or offset
+auto last = std::next(beg,cnt - 1); // iterator to the last element
+auto neg = std::distance(end, beg); // a negative or backwards offset from 'end'
+```
+
 <p align="center">⌚</p>
 
 ### `<chrono>` Types
@@ -217,6 +231,10 @@ This type of API may be convenient, but as the Mars Climate Orbiter developers l
 Not to pick only on OpenCV, the [Eigen C++ template library for linear algebra](http://eigen.tuxfamily.org/index.php?title=Main_Page), provides *only* vectors and ignores the concept of points althogether.  
 
 **Easy Quiz:** Given *N* `cv::Point`s, find their centroid (center-of-gravity).
+
+<p align="center">🤘</p>
+
+**Post-posting Update:** Slack user **@pgbarletta** points out that CGAL (The Computational Geometry Algorithms Library) [*does* get these semantics right!](https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Point__3.html)
 
 <p align="center">☁️</p>
 
