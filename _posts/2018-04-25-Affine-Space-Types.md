@@ -355,7 +355,7 @@ As I was writing this post, [the question of Martian time and date representions
 > See [here](https://github.com/HowardHinnant/date/blob/master/include/date/islamic.h), [here](https://github.com/HowardHinnant/date/blob/master/include/date/julian.h) and [here](https://github.com/HowardHinnant/date/blob/master/include/date/iso_week.h) for examples of non-civil calendars that can interact with `<chrono>`.  Mars could just be another calendar.  At the end of the day, all that is required is conversions to and from `sys_time`, which is [Unix Time](https://en.wikipedia.org/wiki/Unix_time).
 >
 > Martian days, hours and minutes could easily be duration aliases in the Martian namespace.  The key is to not have a single type represent more than 1 thing.  E.g. a Martian year and an Earth year should not both be represented as `std::chrono::year`.
-
+>
 > Choose your precision and choose to truncate it however you like if you choose to truncate at all.
 
 Freely interpreting this: Take your earthly `time_point`, subtract the Earthly "origin" date (the Unix 00:00:00 (Thursday, 1 January 1970)) to get a "calendar-free" `duration`. Now add this duration to the Unix time as represented in the chosen Martian date system. The result is a Martian `time_point` in the chosen calendar.
