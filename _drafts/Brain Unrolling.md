@@ -9,6 +9,8 @@ tags: [C++, C++20, generators, coroutines]
 
 ## The Cambrian
 
+<p align="center"><img src="../../assets/trilobite.png" width="30px"/></p>
+
 ### Good Old Functions
 
 Say we want to iterate over all the elements of a vector.  
@@ -70,17 +72,19 @@ One common way to overcome some of these limitations is by passing external *cal
 
 A few well known problems with callbacks and callables are: 
 
-- *Inversion-of-Control*: Letting library code call external code that is not neccesarily trustworthy, valid or correct in mid-computation.
+- *Inversion-of-Control*: Letting library code call external code that is not neccesarily trustworthy, valid or correct while still in mid-computation.
 - *Callback-Hell*: Where program flow skips between many decoupled parts of the code that your code becomes extremely hard to understand, reason about and maintain (not to mention any potential performance issues).
 - The functions are still *eager* and closed, requiring the creation/processing of the full sequence.
 
-The concept of a function, or ***sub-routine*** goes back to the ENIAC in the late 1940s and the term *sub-routine* is from the early 1950s.
+The concept of a function, or ***sub-routine*** goes back to one of the first computers, the ENIAC, in the late 1940s and the term *sub-routine* is from the early 1950s.
 
-<p align="center"><img src="../../assets/trilobite.png" width="30px"/></p>
+<p align="center">🤔</p>
 
-If only there was a way to "flip" these iterating functions "inside-out" and iterate over a sequence without pre-committing to, or having to specify a, specific operation...
+> If only there was a way to "flip" these iterating functions "inside-out" and iterate over a sequence without pre-committing to, or having to specify a, specific operation...
 
 ## Pre-History
+
+<p align="center"><span style="font-size:2em;">🦖</span></p>
 
 ### Iterators
 
@@ -104,7 +108,6 @@ public:
     LineIterator( const Mat& img, Point pt1, Point pt2, int connectivity = 8);
     uchar* operator *();           // returns pointer to the current pixel
     LineIterator& operator ++();   // prefix increment operator (++it). shifts iterator to the next pixel
-    LineIterator operator ++(int); // postfix increment operator (it++). shifts iterator to the next pixel
     Point pos() const;             // returns coordinates of the current pixel
 
     // public (!!!) members [ <groan 😩> ]  
@@ -148,15 +151,68 @@ There are more severe concerns which are, in fact, symptomatic for all iterator 
 How do we know when to stop incrementing the iterator (e.g. `++it`)?  
 How do we know the sequence is "done"?
 
-For `cv::LineIterator` we must make sure we iterate at most `it.count` times.  
-For `std::istream_iterator`, the default-constructed `std::istream_iterator` is known as the [end-of-stream iterator](https://en.cppreference.com/w/cpp/iterator/istream_iterator). When a valid `std::istream_iterator` reaches the end of the underlying stream, it becomes equal to the end-of-stream iterator.  
-A `std::reverse_iterator` must be compared to the corresponding sequence's `rend()` iterator and `std::recursive_directory_iterator` must be compared to the value returned by calling the free function `std::end()` on it.  
+- For `cv::LineIterator` we must make sure we iterate at most `it.count` times.  
+- For `std::istream_iterator`, the default-constructed `std::istream_iterator` is known as the [end-of-stream iterator](https://en.cppreference.com/w/cpp/iterator/istream_iterator). When a valid `std::istream_iterator` reaches the end of the underlying stream, it becomes equal to the "universal" end-of-stream iterator.  
+- A `std::reverse_iterator` must be compared to the corresponding sequence's `rend()` iterator.
+-  `std::recursive_directory_iterator` must be compared to the value returned by calling the free function `std::end()` on it.  
 
 Note that the last two examples (`std::reverse_iterator` and `std::recursive_directory_iterator`) demonstrate one of the biggest drawbacks of the iterator abstraction: the end-iterator is tightly coupled, at run-time,  to the begin-iterator creation object. This is a pitfall when the provided end iterator is of the correct *type* but *not* created from the same sequence. It is undefined behavior. The code will compile silently and if you're really lucky you'll get a crash (if not, nasal demons may ensue).
 
-<p align="center"><span style="font-size:2em;">🦖</span></p>
+#### Distributed Logic
+The iterator object cousin of Callback-Hell, is the iterator API requirement for *distributed logic* and *centralized-state*. Intermediate iteration/computation variables are stored as (mutable) members, and iteration logic is split between the constructor and member methods like the increment `operator++` (the indirection `operator*()` is usually trivial). The iteration loop is abstracted away to the external user.
 
+Let's look at the implementation of `cv::LineIterator`:
 
+```cpp
+inline uchar* LineIterator::operator *()         // trivial
+{
+    return ptr;
+}
 
+inline LineIterator& LineIterator::operator ++() // loop iteration logic
+{
+    int mask = err < 0 ? -1 : 0;
+    err += minusDelta + (plusDelta & mask);
+    ptr += minusStep + (plusStep & mask);
+    return *this;
+}
+```
 
+After the constructor sets up all the member variables, it is up to the user to iterate and increment the iterator via `++` at most `.count` times. The "current" pixel along the line is the one pointed to by the `.ptr`.
+
+To write [grok] `cv::LineIterator`, one must write [read] the constructor, then the indirection operator and the increment operators (not to mention post-increment etc.).
+
+Additionally, by storing all the intermediate data as persistent members in the object (even if they are *not* public), we do not take advantage of scoped definition and locality (i.e. all methods can access and modify them at any point in the computation), opening the door for potential bugs, performance issues and increased object sizes.
+
+<p align="center">🤔</p>
+
+> If only there was a way to write a simple, serial, loop algorithm with locally defined stack-based intermediate variables which is much easier to read and reason about while still abstracting way the iteration...
+
+## Present Day
+
+<p align="center"><span style="font-size:2em;">🛫</span></p>
+
+### Ranges & Coroutines
+
+#### Ranges
+
+Ranges are a more general concept than iterators. They are the answer to the problems of the *Odd Coupling* mentioned above. By encapsulating a begin *and* end iterator-*pair* or e.g. an iterator + size (or iterator and some way to check a stopping condition) they allow creating a single object  that makes the STL iterators and algorithms more powerful by making them composable. Once we have the Range abstraction, we can build range adaptors and build pipelines that transform ranges of values in interesting ways.
+
+**Ranges are coming to C++20** and are an *amazing* new addition to the standard library!
+
+All the fabulous ranges we are getting are, in many ways, iterator objects and adaptors that provide the end-iterator in a standard mandated way (via `std::end()`). Their API is very similar to the APIs I presented above with the addition of support for `std::begin()` and `std::end()`.
+
+I will not review the enormous power of ranges here. Instead, we'll only contemplate how Ranges are actually implemented, and how we can create our own.  
+
+Since Ranges are generalized iterators, implementing them still suffers from the difficulty of Distributed Logic mentioned above. So what can we do about that?
+
+> “Coroutines make it trivial to define your own ranges.”  
+> — [Eric Niebler](http://ericniebler.com/2017/08/17/ranges-coroutines-and-react-early-musings-on-the-future-of-async-in-c/), Lead author of the C++ Ranges proposal (*edited for drama*)
+
+Hmmm... is that so?  
+But wait, what *are* **coroutines**?
+
+## The Future is Now
+
+<p align="center"><img src="../../assets/brain.png" width="50px"/></p>
 
