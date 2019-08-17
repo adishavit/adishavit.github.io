@@ -198,7 +198,7 @@ After the [constructor](https://github.com/opencv/opencv/blob/3f42122387865af7aa
 
 Basically, the `operator++()` body is exactly the iterating `for`-loop body and  where instead of performing some prescribed operation on the current element, the element is "returned" by updating the `ptr` member and returning `*this` to allow calling the indirection operator for actually accessing it.
 
-To write [grok] `cv::LineIterator`, one must write [read] the constructor, then the indirection operator and the increment operators (not to mention additional methods and operators like the post-increment operator).
+To write [grok or debug] `cv::LineIterator`, one must write [read] the constructor, then the indirection operator and the increment operators (not to mention additional methods and operators like the post-increment operator).
 
 Additionally, by storing all the intermediate data as persistent members in the object (even if they are *not* public), we do not take advantage of scoped definition and locality (i.e. all methods can access and modify them at any point in the computation), opening the door for potential bugs, performance issues and increased object sizes.
 
@@ -255,7 +255,7 @@ If we made `processLine()` above a *coroutine* then, instead of calling `doSomet
 
 To preserve state across calls, the coroutine local stack must persist beyond the initial call and unlike a regular [sub-]routine/function after returning the coroutine stack must persist and should not be overwritten as that is where the state is stored. Moreover, re-entry should resume from the suspension point where we left off in the previous call. 
 
-Amazingly, most common CPU architectures and OSs support multiple stack contexts for ***non-pre-emptive*** or cooperative threading via mechanisms called *fibers* (as opposed to the ***pre-emptive*** threads). The [**Boost.Coroutine2**](https://www.boost.org/doc/libs/1_70_0/libs/coroutine2/doc/html/index.html) library provides cross-platform abstractions over the various architectures and OSs (using [Boost.Context](https://www.boost.org/doc/libs/1_70_0/libs/context/doc/html/context/overview.html) for the low-level platform-dependent parts).
+Amazingly, most common CPU architectures and OSs support multiple stack contexts for ***non-pre-emptive*** or cooperative threading via mechanisms called *fibers* (as opposed to the ***pre-emptive*** threads). The [**Boost.Coroutine2**](https://www.boost.org/doc/libs/1_70_0/libs/coroutine2/doc/html/index.html) library provides cross-platform abstractions over the various architectures and OSs (using [Boost.Context](https://www.boost.org/doc/libs/1_70_0/libs/context/doc/html/context/overview.html) for the low-level platform-dependent parts). [[P0876R8]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0876r8.pdf) proposes adding `fiber_context` support to the standard library. We'll see.
 
 > #### **Intermezzo**
 > A few years ago I wrote an algorithm that was easiest to implement and maintain when expressed as a coroutine generator. Boost.Coroutine2 provided a reasonable interface for writing coroutines and was quite usable. My algorithm was a great success and another project in the company decided to adopt it due to its superior performance. However, that project used [emscripten](https://emscripten.org/) to compile the C++ code to JavaScript.  
@@ -266,21 +266,9 @@ After some tweaking of my own (portable) algorithm code, the algorithm could com
 So how does it this mysterious ["ASIO.coroutine"](https://github.com/chriskohlhoff/asio/blob/master/asio/include/asio/coroutine.hpp) work?  
 Chris Kohlhoff, the author of ASIO, describes it in a blog post from 2010: ["A potted guide to stackless coroutines"](http://blog.think-async.com/2010/03/potted-guide-to-stackless-coroutines.html). Go and read that post and prepare to have your mind blown. Using a clever combination of macros and switch statements, Kohlhoff manages to introduce new "pseudo-keywords" like "yield" that can be used for yielding values from a coroutine. 🤯
 
-From the user side, declaring a coroutine quite simple (quoting the post):
+From the user side, declaring an ASIO.coroutine is quite simple (quoting the post):
 
->Every coroutine needs to store its current state somewhere. For that we have a class called coroutine:
->
->```cpp
->class coroutine
->{
->public:
->  coroutine();
->  bool is_child() const;
->  bool is_parent() const;
->  bool is_complete() const;
->};
->```
->Coroutines are copy-constructible and assignable, and the space overhead is a single `int`. They can be used as a base class:
+>Every coroutine needs to store its current state somewhere. For that we have a class called `coroutine`. Coroutines are copy-constructible and assignable, and the space overhead is a single `int`. They can be used as a base class:
 >
 >```cpp
 >class session : coroutine { ... };
@@ -298,7 +286,7 @@ From the user side, declaring a coroutine quite simple (quoting the post):
 
 Using it to yield values:
 
-> The `yield return <expression>`  is often used in generators or coroutine-based parsers. For example, the function object:
+> The `yield return <expression>`  is often used in generators or coroutine-based parsers. For example, the ***function object***:
 >
 >```cpp
 >struct interleave : coroutine
@@ -325,7 +313,7 @@ Using it to yield values:
 
 An instance of the `interleave` class has an overloaded function call operator `()` and will yield interleaved `char`s, one by one, when called consecutively.
 
-So the syntax is not perfect (note the `reenter (this)` above) but it is totally portable and it works great for generators.
+So the syntax is not perfect (note the `reenter (this)` above) but it is totally portable and it works great for generators. "ASIO.coroutine" does not require CPU/OS level fiber facilities and instead opts for managing the "stack" variables and an object body and the suspend/resume points via `switch` statement "markers".
 
 Despite its coolness, we will not be using "ASIO.coroutine" because *there is a new kid on the block!*
 
@@ -337,10 +325,88 @@ Despite its coolness, we will not be using "ASIO.coroutine" because *there is a 
 
 **Coroutines will become a language level facility in the C++20 standard!**  
 
+[C++20 coroutines](https://en.cppreference.com/w/cpp/language/coroutines) are *Stackless*: they suspend execution by returning to the caller and the data that is required to resume execution is stored *separately* from the stack.  However, in many cases, especially with synchronous generators, the compiler, where possible, will elide the heap allocation for the coroutine extra data and put it directing in the stack frame of the calling function - making it a very cheap abstraction.
+
+***A function is a coroutine** if its definition does any of the following:*
+
+- *uses the `co_await` operator to suspend execution until resumed;*
+- *uses the keyword `co_yield` to suspend execution returning a value;*
+- *uses the keyword `co_return` to complete execution returning a value.*
+
+*Every coroutine must have a return type that satisfies a number of requirements.*
+
+**How do we know if a function is a coroutine?**  
+**We cannot**. Not from its signature at least. Only if its *body* uses any of the special keywords/operator can we determine if it is a coroutine (unless [[P1485R0] Better keywords for the Coroutines TS](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1485r0.html) has its way and we would need to decorate the function declaration with *a new context sensitive keyword `async`* and also maybe drop the ugly `co_` keyword prefixes, we'll see - probably not for C++20).
+
+There is a lot to say about C++20 coroutines and this blog post will only scratch the surface of the capabilities of this amazing new feature. So see it as an incentive to learn more. We will only look at coroutines from the narrow view of creating (synchronous) Generators or Ranges from the *users* perspective (as opposed to compiler writers or library implementors). Practically this means we'll only focus on using the `co_yield` keyword. 
+
+#### Show Me Some Code Already!
+
+We'll start with the simplest possible example:
+
+```cpp
+auto zoro() { return 42; }
+```
+What does `zoro()` return? It returns `42`.  
+Its return type is... `int`.  
+Easy Peasy.  
+Is it a coroutine? **No**.
+
+```cpp
+auto coro() { co_yield 42; }
+```
+What does `coro()` return?  It does *not* return `42`.  
+What is its return type?  It is not `int`.  
+Is it a coroutine? **Yes**.  
+How do we use it?
+
+The coroutine `coro()` returns a ***generator*** in a *suspended state* which, when *resumed*, will *yield* the `int` value `42` (and not more values after that).
+
+So how do we use it?  
+Like we use any iterator object. 
+
+```cpp
+auto gen = coro();      // the suspended generator
+auto it = gen.begin();  // the iterator: resumes the coroutine, executing it until it encounters co_yield
+cout << *it;            // dereference to get the actual value.
+
+// or alternatively
+cout << *coro().begin();
+```
+Our generator is a range, so we can also put it in a range-`for` loop (which, in this case, will run just once):
+
+```cpp
+for (auto v: coro())
+    cout << v;
+```    
+**That's pretty amazing!**  
+The compiler took our linear, serial code and created an object, a generator (`std::generator<int>`), breaking our code up into little pieces and taking care off all the hassle of choosing and selecting which of the local state variable must be saved as memebrs (none in this trivial example), adding methods for increment operator support, indirection operator `*`, `begin()` and `end()` etc.  
+If we thought C++11 lambdas were impressive *Syntactic Sugar*, this the *Syntactic Steroids* of full-blown code generation!
+
+> **Reality Check**  
+> I lied. That code, though [it does compile and work](https://www.godbolt.org/z/gqyG7G), is non-standard conforming and only a peek into the future. First, coroutines are not allowed to have an `auto` return type. This is only an MSVC feature that's really great for explaining things. Upon encountering an `auto` return type (for a `co_yield` using coroutine), MSVC automatically infers it to be `std::experimental::generator<T>` for the relevant type `T`. Perhaps `auto` return types may be supported in a future standard but the reason it **cannot** be supported at the moment is:  
+There *is* no such standard class `std::experimental::generator<>`!  
+The C++20 standard will not ship with **any** standard coroutine support library! What we are using here is Microsoft's experimental implementation. This is a real shame, but a situation that is [very high priority for the C++23 standard](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0592r2.html). There are several great open-source coroutine support libraries, most notably Lewis Baker's fabulous [cppcoro](https://github.com/lewissbaker/cppcoro) to fill this void in the standard.  
+
+Obviously, single element ranges or rather boring. 
+
+
+
+### === fff
+
+
+
+
+
+
+
+- No std library support for coroutines, only low level language facilities
+
+
 
 ## Caveats
 
-This is a motivational and introductory post about generators. It focuses on how to write generators from a coroutine user point of view. However, there are many other details in the presented building blocks it does not go into at all:
+This is a motivational and introductory post about generators. It focuses on how to write generators and generator ranges from a coroutine user point of view. However, there are many other details in the presented building blocks it does not go into at all:
 
 - It does not do justice to the elegance and beauty of C++ Ranges.
 - It ignores many aspects of coroutines including how the compiler generates this magic, how to write low-level coroutine types, asynchronous coroutines with the `co_await` keyword and many other wonderful features.
