@@ -5,11 +5,11 @@ tags: [C++, C++20, generators, coroutines]
 ---
 > Generators and the Sweet Syntactic Sugar of Coroutines
 
-![windmills](../../assets/windmills.jpg)
+![windmills](../../assets/201908/windmills.jpg)
 
 ## The Cambrian
 
-<p align="center"><img src="../../assets/trilobite.png" width="30px"/></p>
+<p align="center"><img src="../../assets/201908/trilobite.png" width="30px"/></p>
 
 ### Good Old Functions
 
@@ -246,7 +246,7 @@ void processLine(const Mat& img, Point pt1, Point pt2,...)
 Hmmm... is that so?  
 But wait, what *are* **coroutines**?
 
-> [**From Boost.Coroutine2**](https://www.boost.org/doc/libs/1_70_0/libs/coroutine2/doc/html/coroutine2/overview.html): A *coroutine* (coined by Melvin Conway in 1963!) is a function that can suspend execution to be resumed later. It allows suspending and resuming execution at certain locations and preserves the local state of execution and allows re-entering the subroutine more than once. In contrast to threads, which are pre-emptive, coroutine switches are cooperative: the programmer controls when a switch will happen. The kernel is not involved in the coroutine switches.
+> [**From Boost.Coroutine2**](https://www.boost.org/doc/libs/1_70_0/libs/coroutine2/doc/html/coroutine2/overview.html): A *coroutine* (coined by Melvin Conway in 1958!) is a function that can suspend execution to be resumed later. It allows suspending and resuming execution at certain locations and preserves the local state of execution and allows re-entering the subroutine more than once. In contrast to threads, which are pre-emptive, coroutine switches are cooperative: the programmer controls when a switch will happen. The kernel is not involved in the coroutine switches.
 
 **This sounds just like what we want!**  
 If we made `processLine()` above a *coroutine* then, instead of calling `doSomething(ptr)` in the loop body, we could (somehow) suspend the execution and ***yield*** the current value `ptr`. When the user so indicates (somehow), we can resume the computation from where we left off!
@@ -264,7 +264,7 @@ After a lot of soul and web searching, and not wanting to manually distribute th
 After some tweaking of my own (portable) algorithm code, the algorithm could compile and ran successfully as compiled client-side browser JavaScript.
 
 So how does it this mysterious ["ASIO.coroutine"](https://github.com/chriskohlhoff/asio/blob/master/asio/include/asio/coroutine.hpp) work?  
-Chris Kohlhoff, the author of ASIO, describes it in a blog post from 2010: ["A potted guide to stackless coroutines"](http://blog.think-async.com/2010/03/potted-guide-to-stackless-coroutines.html). Go and read that post and prepare to have your mind blown. Using a clever combination of macros and switch statements, Kohlhoff manages to introduce new "pseudo-keywords" like "yield" that can be used for yielding values from a coroutine. 🤯
+Chris Kohlhoff, the author of ASIO, describes it in a blog post from 2010: ["A potted guide to stackless coroutines"](http://blog.think-async.com/2010/03/potted-guide-to-stackless-coroutines.html). Go and read that post and prepare to have your mind blown. Using a clever combination of macros and switch statements, Kohlhoff manages to introduce new "pseudo-keywords" like `yield` that can be used for yielding values from a coroutine. 🤯
 
 From the user side, declaring an ASIO.coroutine is quite simple (quoting the post):
 
@@ -313,19 +313,19 @@ Using it to yield values:
 
 An instance of the `interleave` class has an overloaded function call operator `()` and will yield interleaved `char`s, one by one, when called consecutively.
 
-So the syntax is not perfect (note the `reenter (this)` above) but it is totally portable and it works great for generators. "ASIO.coroutine" does not require CPU/OS level fiber facilities and instead opts for managing the "stack" variables and an object body and the suspend/resume points via `switch` statement "markers".
+So the syntax is not perfect (note the `reenter (this)` above) but it is totally portable and it works great for generators. "ASIO.coroutine" does not require CPU/OS level fiber facilities and instead opts for managing the "stack" variables as an object body and the suspend/resume points via `switch` statement "markers". (BTW, the idea is not new. See a similar [C version](https://www.chiark.greenend.org.uk/~sgtatham/coroutines.html) going back to 2000)
 
 Despite its coolness, we will not be using "ASIO.coroutine" because *there is a new kid on the block!*
 
 ## The Future is Now
 
-<p align="center"><img src="../../assets/brain.png" width="50px"/></p>
+<p align="center"><img src="../../assets/201908/brain.png" width="50px"/></p>
 
 ### C++20 Coroutines
 
 **Coroutines will become a language level facility in the C++20 standard!**  
 
-[C++20 coroutines](https://en.cppreference.com/w/cpp/language/coroutines) are *Stackless*: they suspend execution by returning to the caller and the data that is required to resume execution is stored *separately* from the stack.  However, in many cases, especially with synchronous generators, the compiler, where possible, will elide the heap allocation for the coroutine extra data and put it directing in the stack frame of the calling function - making it a very cheap abstraction.
+[C++20 coroutines](https://en.cppreference.com/w/cpp/language/coroutines) are *Stackless*: they suspend execution by returning to the caller and the data that is required to resume execution is stored *separately* from the stack (essentially, their stack is not (generally) stored on the caller stack).  However, in many cases, especially with synchronous generators, the compiler, where possible, will elide the heap allocation for the coroutine extra data and put it directing in the stack frame of the calling function - making it a very cheap abstraction.
 
 ***A function is a coroutine** if its definition does any of the following:*
 
@@ -338,7 +338,7 @@ Despite its coolness, we will not be using "ASIO.coroutine" because *there is a 
 **How do we know if a function is a coroutine?**  
 **We cannot**. Not from its signature at least. Only if its *body* uses any of the special keywords/operator can we determine if it is a coroutine (unless [[P1485R0] Better keywords for the Coroutines TS](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1485r0.html) has its way and we would need to decorate the function declaration with *a new context sensitive keyword `async`* and also maybe drop the ugly `co_` keyword prefixes, we'll see - probably not for C++20).
 
-There is a lot to say about C++20 coroutines and this blog post will only scratch the surface of the capabilities of this amazing new feature. So see it as an incentive to learn more. We will only look at coroutines from the narrow view of creating (synchronous) Generators or Ranges from the *users* perspective (as opposed to compiler writers or library implementors). Practically this means we'll only focus on using the `co_yield` keyword. 
+There is a lot to say about C++20 coroutines and this blog post will only scratch the surface of the capabilities of this amazing new feature. So see it as an incentive to learn more. We will only look at coroutines from the narrow view of creating (synchronous) Generators or Ranges from the *users* perspective (as opposed to compiler writers or library implementors). Practically, this means we'll only focus on using the `co_yield` keyword. 
 
 #### Show Me Some Code Already!
 
@@ -355,18 +355,18 @@ Is it a coroutine? **No**.
 ```cpp
 auto coro() { co_yield 42; }
 ```
-What does `coro()` return?  It does *not* return `42`.  
-What is its return type?  It is not `int`.  
+What does `coro()` return?  It does ***not*** return `42`.  
+What is its return type?  It is ***not*** `int`.  
 Is it a coroutine? **Yes**.  
 How do we use it?
 
-The coroutine `coro()` returns a ***generator*** in a *suspended state* which, when *resumed*, will *yield* the `int` value `42` (and not more values after that).
+The coroutine `coro()` returns a ***generator*** in a *suspended state* which, when *resumed*, will *yield* the `int` value `42` (and no more values after that).
 
 So how do we use it?  
 Like we use any iterator object. 
 
 ```cpp
-auto gen = coro();      // the suspended generator
+auto gen = coro();      // the (suspended) generator
 auto it = gen.begin();  // the iterator: resumes the coroutine, executing it until it encounters co_yield
 cout << *it;            // dereference to get the actual value.
 
@@ -380,16 +380,124 @@ for (auto v: coro())
     cout << v;
 ```    
 **That's pretty amazing!**  
-The compiler took our linear, serial code and created an object, a generator (`std::generator<int>`), breaking our code up into little pieces and taking care off all the hassle of choosing and selecting which of the local state variable must be saved as memebrs (none in this trivial example), adding methods for increment operator support, indirection operator `*`, `begin()` and `end()` etc.  
+The compiler took our linear, serial code and created an object, a generator (`std::generator<int>`), breaking our code up into little pieces and taking care of all the hassle of choosing and selecting which of the local state variable must be saved as members (none in this trivial example), adding methods for increment operator support, indirection operator `*`, `begin()` and `end()` etc (it does this by collaborating and interoperating witgh the actual return value type).  
 If we thought C++11 lambdas were impressive *Syntactic Sugar*, this the *Syntactic Steroids* of full-blown code generation!
 
 > **Reality Check**  
 > I lied. That code, though [it does compile and work](https://www.godbolt.org/z/gqyG7G), is non-standard conforming and only a peek into the future. First, coroutines are not allowed to have an `auto` return type. This is only an MSVC feature that's really great for explaining things. Upon encountering an `auto` return type (for a `co_yield` using coroutine), MSVC automatically infers it to be `std::experimental::generator<T>` for the relevant type `T`. Perhaps `auto` return types may be supported in a future standard but the reason it **cannot** be supported at the moment is:  
-There *is* no such standard class `std::experimental::generator<>`!  
+There *is* no such standard class `std::generator<>`!  
 The C++20 standard will not ship with **any** standard coroutine support library! What we are using here is Microsoft's experimental implementation. This is a real shame, but a situation that is [very high priority for the C++23 standard](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0592r2.html). There are several great open-source coroutine support libraries, most notably Lewis Baker's fabulous [cppcoro](https://github.com/lewissbaker/cppcoro) to fill this void in the standard.  
+For brevity, we'll continue using `auto` return type where its meaning is clear.
 
-Obviously, single element ranges or rather boring. 
+Obviously, single element ranges or rather boring.
 
+Since coroutines are *lazy* we can easily generate infinite ranges:
+
+```cpp
+auto iota(int n = 0) 
+{
+  while(true)
+    co_yield n++;
+}
+
+// usage:
+std::copy_n(iota(42).begin(), 9, std::ostream_iterator<int>(std::cout, ","));
+// prints: 42,43,44,45,46,47,48,49,50
+```
+
+The infinite loop will suspend at every iteration, yielding the current value, and only resume on demand.
+
+To get a better feel for them, let's take coroutines for spin. 
+
+### Spin Cycle
+
+Given a bunch of scattered pixels in an image, I once needed process the neighborhood around each pixel only up to the its closest neighbor. My solution was to scan the image in an ever growing spiral around each pixel until bumping into the first neighbor.
+
+![spin-cycle](../../assets/201908/hsvspiral_opt.gif)
+
+Here's spiral generator around (0,0):
+
+```cpp
+auto spiral() 
+{
+    int x = 0, y = 0;
+    while (true)
+    {
+        co_yield Point{ x, y }; // yield the current position on the spiral
+        if (abs(x) <= abs(y) && (x != y || x >= 0))
+            x += ((y >= 0) ? 1 : -1);
+        else
+            y += ((x >= 0) ? -1 : 1);
+    }
+}
+```
+
+This code is image independent and will lazily spiral to infinity. Understanding the code logic is left as an exercise to the curious reader, but note that all the logic is in one, single, serial function, easy to read and debug. Figuring it out when distributed among multiple object methods would make the task significantly harder.
+
+I mentioned line color gradients external to the iteration itself above. Let's create an RGB color generator that infinitely cycles through the values of the Hue channel in the [HSV color space](https://en.wikipedia.org/wiki/HSL_and_HSV) to generate smoothly varying bright colors. We'll use OpenCV to do the color conversions.
+
+```cpp
+auto hueCycleGen(int step = 1)
+{
+    Mat3b rgb(1,1), hsv(1,1);
+    hsv(0,0) = { 0, 255, 255 }; // { Hue=0, Full Saturation, Full Intensity }
+    while (true)
+    {
+        cvtColor(hsv, rgb, COLOR_HSV2RGB_FULL);
+        co_yield rgb(0,0); // yield the current RGB corresponding to the current HSV.
+        (hsv(0,0)[0] += step) %= 255; // cycle the H channel
+    }
+}
+```
+We create two single pixel images, and infinitely cycle through the Hue channel values, converting the HSV color to RGB for display.
+
+To draw the animation above, all that's left to do is create the generators and lazily iterate them, *in tandem*. Can we use a single range-`for` loop to do this?  
+How do we iterate *both* generators in tandem with a single `for` loop?
+
+Let's zip them together!  
+
+```cpp
+template <typename T, typename U>
+auto zip(T vals1, U vals2)
+{
+    auto it1 = vals1.begin();
+    auto it2 = vals2.begin();
+    for (; vals1.end() != it1 && vals2.end() != it2; ++it1, ++it2)
+        co_yield std::make_pair(*it1, *it2);
+};
+```
+Yes! Coroutines may be templates too!  
+`zip()` takes two generators, gets their `begin()` iterators and walks them in tandem until either one is done (if ever). It lazily yields a `std::pair` of *their* yielded values.
+
+Note that the [ranges-v3 library](https://github.com/ericniebler/range-v3) has a much more powerful zip "view" that should work similarly to this simple and naive version (remember that coroutine generators *are* Ranges), though AFAIK it is not part of the Ranges library that was accepted into the C++20 standard. We will most likely be getting more Range views and actions in C++23.
+
+```cpp
+for (auto p : zip(spiral(), hueCycleGen()))         // 1. zip the generators
+{
+    cv::Point pix = p.first + offset;               // 2. offset to actual pixel position
+    if (img.rows*2 <= pix.x && img.cols*2 <= pix.y) // 3. no more pixels to scan
+        break;
+    if (!rect.contains(pix))                        // 4. skip out of bounds 
+        continue;
+    img(pix) = p.second;                            // 5. set pixel color
+}
+```
+
+We're creating a single generator from two and iterating them in tandem. How cool is that?  
+Here's another version with the Hue cycle 10 times as fast (`hueCycleGen(10)`):
+
+![spin-cycle](../../assets/201908/hsvspiral_opt2.gif)
+
+Looking at `zip()`, we might want to make sure it is called with actual generators and not just any `T` and `U`. We could use template meta-programming tools to do that but, hey, this is C++20! We have **Concepts**! Feel free to try it!
+
+Also, `zip()` seems very specific. Why limit ourselves to just *two* input generators? What not support zipping together of *any* number of generators?  
+Well, as currently defined, coroutines cannot use variadic arguments. If you need that functionality, try `ranges::views::zip` instead.
+
+Working with Structs-of-Arrays (instead of Arrays-of-Structs) is common in game and graphics programming. Zipping ranges together on the fly like this may make SoA programming more convenient and expressive.
+
+As we saw, coroutines can take other coroutines are arguments and process them. We can easily create filters, conversions and many other views and actions similar to what any Ranges library provides.
+
+> Python's [itertools](https://docs.python.org/3/library/itertools.html) library provides *functions creating iterators for efficient looping*. I urge you to go look at the itertools documentation. The equivalent C++ version basically writes itself in an almost one-to-one mapping.
 
 
 ### === fff
@@ -412,5 +520,8 @@ This is a motivational and introductory post about generators. It focuses on how
 - It ignores many aspects of coroutines including how the compiler generates this magic, how to write low-level coroutine types, asynchronous coroutines with the `co_await` keyword and many other wonderful features.
 
 
-
-
+## Refs
+- Spiral code/algorithm: https://stackoverflow.com/a/31864777/135862
+- https://gifcompressor.com/ [GIF tools](https://ezgif.com/speed/ezgif-1-7e2deefea079.gif)
+- [Writing gif with gif-h](https://github.com/ginsweater/gif-h)
+- [Coroutines in C by Simon Tatham, 2000](https://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
