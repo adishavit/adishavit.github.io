@@ -576,7 +576,7 @@ This simplifies the code above as there is no need for the internal range-`for` 
       if (right_) co_yield right_->inorder();            
    }
 ```
-An `inorder` function can't get simpler than that!
+An recursive traversal function can't get much simpler than that!
 
 <p align="center"><img src="../../assets/201908/bare_tree.png" width="70px"/></p>
 
@@ -604,6 +604,8 @@ As of this writing, I am not aware of any generator type that makes use of this 
 This is very cool and shows that there is still a lot of room for innovation and that the underlying language support is generic enough to allow such advanced usage.
 
 ### Traps
+
+#### **Dangling References**
 
 Coroutine execution starts only *after* calling `begin()` for the first time. This can lead to what is known as the [*Dangling Reference* problem](https://quuxplusone.github.io/blog/2019/07/10/ways-to-get-dangling-references-with-coroutines/) of coroutines.
 
@@ -634,14 +636,44 @@ Ouch! See the rest of the [post](https://quuxplusone.github.io/blog/2019/07/10/w
 If you expect the user to pass temporaries you must take the parameters as copies i.e. pass by value.   
 *(I am not an expert on this, so if there is better advice to ping me and I will update it here with due credit).*
 
+#### **Decapitation**
+
+Let's say we need to parse a file encoded in one of multiple supported format versions (e.g. for backward and forward compatibility) and we have coroutines to parse each of the supported formats. We want to create a generator "factory" function that returns a single, format agnostic, generator to the user. 
+
+We'll want to run the first supported format coroutine and **check if the returned generator range is empty**. If it isn't empty, then we **return the non-empty generator to the user**. If it *is* empty, then we can create a new generator for the next supported format version. 
+
+Checking for emptiness requires comparing `begin()` to `end()`. *However*, remember that a generator begins execution once `begin()` is called and will run until the first suspension point. If the generator is actually empty, we can, indeed, continue as planned and try a different coroutine. In the case when the generator is *not* empty, the generator is now in a suspended state with the first generated value available. If we now return it (the generator object) to the caller, the caller, unwittingly, will call `begin()` again (as one does with generators) which, unless otherwise implemented, will resume execution and the first value will be skipped, the user unaware that it was ever missing. More often that not this decapitation will happen, and in general there is no guarantee that `begin()` is in any way idempotent.
+
+We have to be careful passing around generators in an initially suspended (pre-execution) state. **Do not use an empty range (i.e. generator) to indicate error** since checking for emptiness sets its execution in motion and decapitation may ensue [[^1]].
+
+[^1]: Though this could be avoided with a suitable implementations of `generator<T>`. This is a QoI issue, as generators are not yet in the standard library.
+
+To indicate generator creation failure, I came up with this approach:
+
+```cpp
+optional<generator<int>> maybeGen(bool fail) 
+{
+   if (fail) return std::nullopt; // oops, no generator
+   return [](){ co_yield 42; }(); // immediately invoked lambda coroutine expression
+}
+```
+
+Here, `maybeGen()` is *not* a coroutine, but a regular function returning an *optional* generator. If and when conditions allow, it returns a valid (initially suspended) generator by immediately invoking an internal lambda coroutine to create the actual generator.
+
+Now, an external function may check the optional and return the contents if it is valid without resuming the generator execution.
+
+> Manipulating coroutines in an initially suspended state, are like a black mirror opposites of "zombie" moved-from objects. You must be very careful not to set them off.
+
+<p align="center"><span style="font-size:2em;">🧟</span></p>
+
 ### Limitations
 
 Coroutines are new. They are hot off the presses. They are not perfect. They are not complete (in many senses of the word).
 
-Though coroutines may be templates and lambdas, as defined in the C++20 standard, coroutines cannot use plain `return` statements (though some current compiler implementations do still allow it), or *placeholder return types* (`auto` or Concept). Also, `constexpr` functions, constructors, destructors, and the `main` function cannot be coroutines. I suspect that at least some of these limitations will be lifted as we gain more experience, and as diligent developers like you, dear reader, write up proposals for extended features (Lambda also become incrementally more and more powerful from C++11, 14, 17 and 20). 
+Though coroutines may be templates and lambdas, as defined in the C++20 standard, coroutines cannot use plain `return` statements (though some current compiler implementations do still allow it), or *placeholder return types* (`auto` or Concept). Also, `constexpr` functions, constructors, destructors, and the `main` function cannot be coroutines. I suspect that at least some of these limitations will be lifted as we gain more experience, and as diligent developers like you, dear reader, write up proposals for extended features (lambdas also become incrementally more and more powerful from C++11, 14, 17 and 20). 
 
 Beyond these current language limitations, the main issue is the lack of standard library support. As mentioned above, there is no `std::generator<>` or any other coroutine support library type. All we have at this time is a detailed definition of the very low level facilities such types must expose and how the compiler code generation will interact with them.  
-This means that there is no standard definition for *any* generator type. For example, Microsoft's implementation does not support yielding references `generator<T&>` while `cppcoro::generator<T&>` does (but `std::reference_wrapper<T>` gets around this). This is actually very useful for yielding locally coroutine defined objects without copying or moving them. There is a problem of Quality-of-Implementation.
+This means that there is no standard definition for *any* generator type. For example, Microsoft's implementation does not support yielding references `generator<T&>` while `cppcoro::generator<T&>` does (but using `std::generator<std::reference_wrapper<T>>` gets around this). This is actually very useful for yielding locally coroutine defined objects without copying or moving them. There is a problem of Quality-of-Implementation.
 
 Coroutines and the various library implementations involve a lot of code generation and compiler optimizations currently suffer from Quality-of-Implementation issues as well. Some compilers will elide the heap allocations where other will not. I expect these large disparities to decrease once more compilers strive for competitive conformance.
 
