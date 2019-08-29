@@ -228,6 +228,7 @@ void processLine(const Mat& img, Point pt1, Point pt2,...)
 
         doSomething(ptr); // <<!!! ptr is the "current" element/pixel
     }
+}
 ```
 
 <p align="center">🤔</p>
@@ -325,7 +326,7 @@ Despite its coolness, we will not be using "ASIO.coroutine" because *there is a 
 
 [**Coroutines will become a language level facility in the C++20 standard!**](https://en.cppreference.com/w/cpp/language/coroutines)  
 
-A C++20 **function** is a [***coroutine***](https://en.cppreference.com/w/cpp/language/coroutines) if its definition does any of the following:*
+A C++20 **function** is a [***coroutine***](https://en.cppreference.com/w/cpp/language/coroutines) if its definition does any of the following:
 
 - *uses the `co_await` operator to suspend execution until resumed;*
 - *uses the keyword `co_yield` to suspend execution returning a value;*
@@ -383,6 +384,9 @@ Our generator is a range, so we can also put it in a range-`for` loop (which, in
 for (auto v: coro())
     cout << v;
 ```    
+
+Note that unlike `std::istream_iterator`where the first object is read when the iterator is constructed, here the first value will only be ready after `begin()` is called and not upon construction.
+
 **That's pretty amazing!**  
 The compiler took our linear, serial code and created an object, a generator (`std::generator<int>`), breaking our code up into little pieces and taking care of all the hassle of choosing and selecting which of the local state variable must be saved as members (none in this trivial example), adding methods for increment operator support, indirection operator `*`, `begin()` and `end()` etc (it does this by collaborating and interoperating with the conforming return type).  
 If we thought C++11 lambdas were impressive *Syntactic Sugar*, this the *Syntactic Steroids* of full-blown code generation!
@@ -632,8 +636,8 @@ Run it [here](https://coro.godbolt.org/z/Z6iNru). From the post:
 
 Ouch! See the rest of the [post](https://quuxplusone.github.io/blog/2019/07/10/ways-to-get-dangling-references-with-coroutines/) for more examples of this and some opinionated commentary on the subject.
 
-***Be vewy vewy caweful passing tempowawy values to cowoutines***.  
-If you expect the user to pass temporaries you must take the parameters as copies i.e. pass by value.   
+> <span style="font-size:2em;font-style:normal;">⚠️</span> ***Be vewy vewy caweful passing tempowawy values to cowoutines***.  
+> If you expect the user to pass temporaries you must take the parameters as copies i.e. pass by value.   
 *(I am not an expert on this, so if there is better advice to ping me and I will update it here with due credit).*
 
 #### **Decapitation**
@@ -658,13 +662,17 @@ optional<generator<int>> maybeGen(bool fail)
 }
 ```
 
-Here, `maybeGen()` is *not* a coroutine, but a regular function returning an *optional* generator. If and when conditions allow, it returns a valid (initially suspended) generator by immediately invoking an internal lambda coroutine to create the actual generator.
+Here, `maybeGen()` is *not* a coroutine, but a regular function returning an *optional* generator. If and when conditions allow, it returns a valid (initially suspended) generator by immediately invoking an internal lambda coroutine to create the actual generator. 
 
 Now, an external function may check the optional and return the contents if it is valid without resuming the generator execution.
 
-> Manipulating coroutines in an initially suspended state, are like a black mirror opposites of "zombie" moved-from objects. You must be very careful not to set them off.
+> <span style="font-size:2em;font-style:normal;">⚠️</span> This is not a panacea since pre-coroutine validity check(s), must be made outside the internal lambda. There is no way for the internal ***coroutine***-lambda to communicate pre-parsing failure to `maybeGen()` since it only starts executing *after* `maybeGen()` already completes execution and goes out of scope. Any local variables that `maybeGen()` could have sent the lambda e.g. via arguments or captures, will be *dangling references* if the lambda tries to access or modify them.  
 
 <p align="center"><span style="font-size:2em;">🧟</span></p>
+
+> <span style="font-size:2em;font-style:normal;">⚠️</span> Manipulating coroutines in an initially suspended state, are like a black mirror opposites of "zombie" moved-from objects. You must be very careful not to inadvertently set them off.
+
+<p align="center"><span style="font-size:2em;">🧟‍♀️</span></p>
 
 ### Limitations
 
