@@ -700,7 +700,7 @@ Here is a very partial list of resources (beyond those linked in the post) for l
 - A [massive, well maintained, list of resources, papers, articles and videos](https://gist.github.com/MattPD/9b55db49537a90545a90447392ad3aeb) from the diligent [MattPD](https://github.com/MattPD/cpplinks).
 - You can find almost everyone involved in coroutine design and critique on the `#coroutines` channel on Slack.
 - [Coroutines in C by Simon Tatham, 2000](https://www.chiark.greenend.org.uk/~sgtatham/coroutines.html)
-- Multiple video versions of this post as a conference talk may be found online: [NDC TechTown 2019](https://youtu.be/CwCJBpB7Z5w), [CppCon 2019](https://youtu.be/qYHDERleSL8), [code::dive 2019](https://youtu.be/pDjRr85jfS0)
+- Multiple video versions of this post as a conference talk may be found online: [NDC TechTown 2019](https://youtu.be/CwCJBpB7Z5w), [CppCon 2019](https://youtu.be/qYHDERleSL8), [C++ Russia 2019 Piter](https://youtu.be/LuMNzUaAuhI), [code::dive 2019](https://youtu.be/pDjRr85jfS0)
 
 
 ## Credits
